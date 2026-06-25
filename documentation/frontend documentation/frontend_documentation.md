@@ -48,9 +48,11 @@ Forms:       React Hook Form + Zod (or similar)
 ### API Base URL
 
 ```
-Development: http://localhost:5001/plusone-dev/us-central1/api
+Development: http://localhost:5001/plusone-dev/asia-south1/api
 Production:  https://asia-south1-plusone-prod.cloudfunctions.net/api
 ```
+
+> **Region:** All backend functions run in `asia-south1` (Mumbai) for low latency Indian users.
 
 ### Standard API Call Pattern
 
@@ -207,8 +209,10 @@ API Call:
 **API Calls:**
 | Action | API Call | Sends | Receives |
 |--------|---------|-------|----------|
-| Upload avatar | `POST /uploads/image` (or direct Cloudinary upload) | FormData with image file | `{ url: "https://cloudinary.com/..." }` |
-| Save profile | `PUT /users/me` | `{ displayName, avatarUrl, city, coordinates, preferredLanguages }` | Updated user object |
+| Upload avatar | Direct Cloudinary upload | FormData with image file | `{ url: "https://cloudinary.com/..." }` |
+| Save profile (first-time only) | `POST /auth/complete-profile` | `{ displayName, avatarUrl, city, coordinates, preferredLanguages }` | Updated user object with `isVerified: true` |
+
+> **Note:** `POST /auth/complete-profile` is used **only** for the first-time profile completion screen after social/phone signup. All subsequent profile updates (e.g., changing city, avatar) use `PUT /users/me`.
 
 ---
 
@@ -305,7 +309,7 @@ API Call:
 | Action | API Call | Sends | Receives |
 |--------|---------|-------|----------|
 | Get host profile | `GET /hosts/:hostId` | — | Full host public profile |
-| Get host ratings | `GET /ratings/for/:hostId?limit=10&cursor=...` | — | `{ data: [...ratings], meta: { cursor } }` |
+| Get host ratings | `GET /ratings/for/:userId?limit=10&cursor=...` | — | `{ data: [...ratings], meta: { cursor } }` |
 
 ---
 
@@ -599,9 +603,9 @@ firebase.database()
 
 ### 3.6 Post-Session
 
-#### Screen: Rate & Review (`/booking/:bookingId/rate`)
+#### Screen: Rate & Review — User Rates Host (`/booking/:bookingId/rate`)
 
-**Shown after session completes.**
+**Shown to the USER after session completes.**
 
 **Features:**
 - Host profile card (photo, name)
@@ -612,15 +616,40 @@ firebase.database()
   - Communication ⭐⭐⭐⭐⭐
   - Punctuality ⭐⭐⭐⭐⭐
 - **Text review** (optional textarea)
-- **Video review** (optional — record/upload → earn 10-20% discount)
+- **Video review** (optional — record/upload → earn 10-20% discount on next booking)
 - "Submit Review" button
+- "Skip" option (can rate later from My Bookings)
+
+**API Calls:**
+| Action | API Call | Sends | Receives |
+|--------|---------|-------|----------|
+| Submit rating | `POST /ratings` | `{ bookingId, scores: { professionalism: 5, friendliness: 4, communication: 5, punctuality: 4 }, comment: "Great!", videoReviewUrl: null }` | Rating object + discount code (if video review submitted) |
+| Upload video review | Direct Cloudinary upload | Video file | `{ url: "..." }` |
+
+---
+
+#### Screen: Rate & Review — Host Rates User (`/host/session/:bookingId/rate`)
+
+**Shown to the HOST after ending a session. Two-way rating — backend supports both sides rating each other.**
+
+**Features:**
+- User profile card (name, trust score)
+- Session summary (date, duration, distance)
+- **Star rating** for each category (host evaluates the user):
+  - Behaviour ⭐⭐⭐⭐⭐
+  - Respect ⭐⭐⭐⭐⭐
+  - Safety compliance ⭐⭐⭐⭐⭐
+  - Cooperation ⭐⭐⭐⭐⭐
+- **Text comment** (optional)
+- "Submit" button
 - "Skip" option
 
 **API Calls:**
 | Action | API Call | Sends | Receives |
 |--------|---------|-------|----------|
-| Submit rating | `POST /ratings` | `{ bookingId, scores: { professionalism: 5, friendliness: 4, communication: 5, punctuality: 4 }, comment: "Great!", videoReviewUrl: null }` | Rating object + discount code (if video review) |
-| Upload video review | Direct Cloudinary upload | Video file | `{ url: "..." }` |
+| Submit host rating | `POST /ratings` | `{ bookingId, scores: { behaviour: 5, respect: 4, safety: 5, cooperation: 4 }, comment: "Polite and punctual." }` | Rating object (updates user trust score) |
+
+> **Flow:** After the host calls `POST /sessions/:bookingId/end`, the host session screen navigates to `/host/session/:bookingId/rate`. Both ratings are submitted independently. The booking status moves to `rated` only when **both** the user and the host have submitted their ratings.
 
 ---
 
@@ -664,6 +693,7 @@ firebase.database()
   - Status badge (color-coded)
   - Price
 - Click → navigates to booking detail / live session / receipt
+- **"Request Refund"** button on cancelled bookings (if eligible based on cancellation policy)
 - Pull-to-refresh
 
 **API Calls:**
@@ -672,7 +702,9 @@ firebase.database()
 | Get upcoming bookings | `GET /bookings/my?status=pending_assignment,host_assigned,host_confirmed&limit=20` | Query | Paginated bookings |
 | Get past bookings | `GET /bookings/my?status=completed,rated&limit=20` | Query | Paginated bookings |
 | Get cancelled bookings | `GET /bookings/my?status=cancelled&limit=20` | Query | Paginated bookings |
-| Cancel booking | `PUT /bookings/:bookingId/cancel` | `{ reason: "Changed plans" }` | Updated booking with cancellation fee |
+| Cancel booking | `PUT /bookings/:bookingId/cancel` | `{ reason: "Changed plans" }` | Updated booking with `cancellationFee` and `refundAmount` |
+
+> **Refund note:** Refunds are processed by the admin via `POST /payments/refund`. When a user cancels, if cancellation was within the free-cancel window (default 24h before booking), the system flags the booking as eligible for a full refund. If after the window, the system deducts the cancellation fee (25% by default) and the remaining amount is refunded. The user sees the refund status on the cancelled booking card.
 
 ---
 
@@ -683,12 +715,14 @@ firebase.database()
   - Plan name, price, end date
   - Hours remaining / total (progress bar)
   - KM remaining / total (progress bar)
-  - "Manage Subscription" button
+  - **Auto-Renew toggle** (on/off — calls backend to update preference)
+  - "Change Plan" / "Cancel Subscription" buttons
 - **Unit Balance card:**
   - Hours balance: 15h
   - KM balance: 200km
   - "Buy More Hours" / "Buy More KM" buttons
-- **Transaction history:** List of purchases, deductions, refunds
+- **Unit purchase history:** List of unit purchases and per-booking deductions (separate from billing history)
+- **Billing history tab:** All transactions (payments, refunds, subscriptions) from the full payment history
 - **Buy Units modal:**
   - Select type: Hours / KM
   - Amount selector (5, 10, 25, 50, 100)
@@ -700,10 +734,12 @@ firebase.database()
 |--------|---------|-------|----------|
 | Get subscription | `GET /subscriptions/my` | — | Active subscription or null |
 | Get unit balance | `GET /units/balance` | — | `{ hoursBalance, kmBalance }` |
-| Get transaction history | `GET /payments/history?limit=20&cursor=...` | Query | `{ data: [...transactions], meta: { cursor } }` |
+| Get unit history (Wallet tab) | `GET /units/history?limit=20&cursor=...` | Query | `{ data: [...unitTransactions], meta: { cursor } }` |
+| Get full billing history (Billing tab) | `GET /payments/history?limit=20&cursor=...` | Query | `{ data: [...allTransactions], meta: { cursor } }` |
 | Purchase units | `POST /units/purchase` | `{ type: "hours", amount: 10 }` | `{ razorpayOrderId, purchase: { type, amount, totalPrice } }` |
 | Subscribe to plan | `POST /subscriptions/subscribe` | `{ planId: "monthly_basic", autoRenew: true }` | `{ subscriptionId, razorpayOrderId }` |
 | Cancel subscription | `PUT /subscriptions/:subId/cancel` | — | Updated subscription |
+| Toggle auto-renew | `PUT /subscriptions/:subId/toggle-autorenew` | — | `{ autoRenew: true/false }` |
 | Get pricing plans | `GET /subscriptions/plans` | — | Array of plan definitions |
 
 ---
@@ -717,16 +753,20 @@ firebase.database()
 - Phone number (with change flow)
 - City (dropdown)
 - Preferred languages (multi-select)
-- Trust score display
+- Trust score display (badge with colour: green ≥ 70, yellow 40-69, red < 40)
+- **Referral Code section:**
+  - Displays unique referral code (e.g., `RAHUL3X7`)
+  - "Copy Code" button
+  - "Share" button (native share sheet)
 - Notification preferences (toggle: push, email, SMS)
-- "Apply to Become a Host" button (if role is "user")
-- "Delete Account" button (with confirmation)
+- "Apply to Become a Host" button (if role is "user" and not already host)
+- "Delete Account" button (with confirmation modal)
 - Logout button
 
 **API Calls:**
 | Action | API Call | Sends | Receives |
 |--------|---------|-------|----------|
-| Get profile | `GET /users/me` | — | Full user profile |
+| Get profile | `GET /users/me` | — | Full user profile incl. `referralCode` |
 | Update profile | `PUT /users/me` | `{ displayName, city, preferredLanguages }` | Updated profile |
 | Upload avatar | Direct Cloudinary upload + `PUT /users/me` with new URL | Image file | Cloudinary URL |
 | Delete account | `DELETE /auth/delete-account` | — | Confirmation |
@@ -850,17 +890,20 @@ firebase.database()
   - Distance meter (counting up)
   - Remaining hours/km from plan (counting down)
   - Route tracking on map
-  - Overage warning (when approaching limits)
-- **"END SESSION"** button
-- Chat button
-- SOS button (for host)
-- Contact user button
+  - Overage warning banner (when approaching limits: yellow at 90%, red at 100%)
+- **"END SESSION"** button (with confirmation modal)
+- Chat button → opens chat overlay
+- 🚨 **SOS button** (prominent red — host can also trigger emergency)
+- Contact user button (in-app call)
 
 **API Calls:**
 | Action | API Call | Sends | Receives |
 |--------|---------|-------|----------|
 | Start session | `POST /sessions/:bookingId/start` | `{ location: { lat, lng } }` | Session data with included limits |
 | End session | `POST /sessions/:bookingId/end` | `{ location: { lat, lng } }` | Session summary with final bill |
+| **Trigger SOS (host)** | `POST /sos/trigger` | `{ bookingId, location: { lat, lng, accuracy } }` | `{ alertId, status: "active", emergencyNumber: "112", message: "Help is on the way" }` |
+
+> **SOS flow for host:** Same endpoint as user SOS (`POST /sos/trigger`). The `triggerRole` is automatically set by the backend based on the caller's JWT role (`host`). After triggering SOS, the host is shown the same full-screen red overlay with the option to call 112 and a Cancel SOS button.
 
 **Host Location Broadcasting (Firebase RTDB — direct write from host device):**
 ```javascript
@@ -998,13 +1041,123 @@ firebase.database()
 
 ### 5.5 Admin Finance (`/admin/finance`)
 
+**Features:**
+- Revenue report with date range selector
+- Revenue breakdown: total, platform share (30%), host share (70%), GST collected, refunds issued
+- Daily chart (bar graph)
+- Pending host payouts list with "Process Payout" action
+- Completed payouts history
+- **Refund management:** List of refund-eligible cancelled bookings; admin initiates refund
+- System configuration (pricing, matching, billing params)
+
 | Action | API Call | Sends | Receives |
 |--------|---------|-------|----------|
 | Revenue report | `GET /admin/finance/revenue?startDate=2026-07-01&endDate=2026-07-31` | Query | `{ totalRevenue, platformShare, hostShare, refunds, netRevenue, dailyBreakdown: [...] }` |
 | Pending payouts | `GET /admin/finance/payouts?status=pending` | Query | Array of pending host payouts |
 | Process payout | `POST /admin/finance/payout` | `{ hostId, amount, transactionIds: [...] }` | Payout confirmation |
+| **Initiate refund** | `POST /payments/refund` | `{ bookingId, amount, reason: "Cancelled within window" }` | `{ refundId, status: "processing", estimatedDays: 5 }` |
 | Get system config | `GET /admin/config` | — | All config objects |
 | Update config | `PUT /admin/config/:configKey` | `{ values: { ... } }` | Updated config |
+
+---
+
+### 5.6 Admin SOS Center (`/admin/sos`)
+
+**Features:**
+- Real-time list of all **active** SOS alerts (auto-updates via Firebase RTDB)
+- Each alert card shows:
+  - Triggerer name + role (user/host)
+  - Booking details (other party name, category)
+  - Location on mini-map with coordinates
+  - Time elapsed since trigger
+  - Assigned agent (if any)
+- **Actions per alert:**
+  - ✅ **Resolve** — Mark as resolved after situation handled
+  - ❌ **False Alarm** — Mark as false alarm
+  - 👤 **Assign Agent** — Assign ops team member
+  - 🚔 **Mark Emergency Called** — Record that 112 was contacted
+- Clicking alert → full detail view (SOS detail modal)
+- History tab: all past resolved/false-alarm alerts
+
+**API Calls:**
+| Action | API Call | Sends | Receives |
+|--------|---------|-------|----------|
+| Get active SOS alerts | `GET /sos/active` | — | Array of active SOS alert objects |
+| Get SOS detail | `GET /sos/:alertId` | — | Full alert with booking, user/host details, location, timeline |
+| Resolve alert | `PUT /sos/:alertId/status` | `{ status: "resolved", notes: "User confirmed safe" }` | Updated alert |
+| Mark false alarm | `PUT /sos/:alertId/status` | `{ status: "false_alarm", notes: "Accidental trigger" }` | Updated alert |
+| Assign agent | `PUT /sos/:alertId/status` | `{ status: "responding", assignedAgentId: "adminUserId" }` | Updated alert |
+| Mark emergency called | `PUT /sos/:alertId/status` | `{ emergencyServicesCalled: true }` | Updated alert |
+
+**Real-Time (Firebase RTDB):**
+```javascript
+// Listen for new SOS alerts (CRITICAL — must be real-time, unmissable)
+firebase.database()
+  .ref('/sos')
+  .orderByChild('status')
+  .equalTo('active')
+  .on('child_added', (snapshot) => {
+    const alert = snapshot.val();
+    // ALARM: Show full-screen SOS alert modal
+    // Play alarm sound (loop until dismissed)
+    // Center map on alert location
+  });
+
+// Listen for status changes (e.g., another agent resolves it)
+firebase.database()
+  .ref('/sos')
+  .on('child_changed', (snapshot) => {
+    const alert = snapshot.val();
+    if (alert.status !== 'active') {
+      // Remove from active list, move to resolved list
+    }
+  });
+```
+
+---
+
+### 5.7 Admin Promotions Management (`/admin/promotions`)
+
+**Features:**
+- List of all promotions (active + past)
+- Each promotion: title, image, discount type, discount value, date range, status badge
+- **Create Promotion** button → modal/form:
+  - Title, description
+  - Banner image (upload → Cloudinary)
+  - Target audience (All / New Users / Subscribers)
+  - Discount type (Percentage / Flat)
+  - Discount value
+  - Promo code (optional)
+  - Start date / End date
+- **Edit** button per promotion
+- **Deactivate/Delete** button per promotion
+
+| Action | API Call | Sends | Receives |
+|--------|---------|-------|----------|
+| List all promotions | `GET /admin/bookings?limit=20` *(use promotions endpoint)* `GET /promotions/active` + admin variant | — | All promotions |
+| Create promotion | `POST /promotions` | `{ title, description, imageUrl, targetAudience, discountType, discountValue, promoCode, startDate, endDate }` | Created promotion |
+| Edit promotion | `PUT /promotions/:promoId` | Updated fields | Updated promotion |
+| Deactivate promotion | `DELETE /promotions/:promoId` | — | Success |
+
+---
+
+### 5.8 Admin Audit Logs (`/admin/audit-logs`)
+
+**Features:**
+- Searchable, filterable table of all system actions
+- Columns: Timestamp | Entity | Action | Performed By | Role | IP Address
+- Filters: Entity type (USER/BOOKING/HOST/SOS), Action type, Date range, User
+- Click row → detail modal with full `changes` diff (old value → new value)
+- Examples logged:
+  - `USER#uuid: LOGIN` by user
+  - `BOOKING#uuid: CANCEL` by user
+  - `HOST#uuid: KYC_APPROVED` by admin
+  - `SOS#uuid: SOS_TRIGGER` by user
+  - `CONFIG#billing: UPDATE` by admin
+
+| Action | API Call | Sends | Receives |
+|--------|---------|-------|----------|
+| Get audit logs | `GET /admin/audit-logs?entityType=BOOKING&action=CANCEL&startDate=2026-07-01&limit=50&cursor=...` | Query | `{ data: [...logs], meta: { cursor, hasMore } }` |
 
 ---
 

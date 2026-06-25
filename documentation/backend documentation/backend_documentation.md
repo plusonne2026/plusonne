@@ -961,9 +961,11 @@ active → completed → rated
 
 ### Base URL
 ```
-Production: https://us-central1-plusone-prod.cloudfunctions.net/api
-Development: http://localhost:5001/plusone-dev/us-central1/api
+Production:  https://asia-south1-plusone-prod.cloudfunctions.net/api
+Development: http://localhost:5001/plusone-dev/asia-south1/api
 ```
+
+> **Region Note:** All Cloud Functions are deployed in `asia-south1` (Mumbai) to minimise latency for Indian users. DynamoDB tables are also in `ap-south-1` (Mumbai, AWS). Cross-cloud latency Mumbai ↔ Mumbai ≈ 5-15ms.
 
 ### Standard Response Format
 
@@ -1428,11 +1430,12 @@ Operations (CRITICAL — atomic transaction):
 
 | # | Method | Endpoint | Auth | Role | Description |
 |---|--------|----------|------|------|-------------|
-| 1 | POST | `/payments/create-order` | Yes | user | Create Razorpay order |
+| 1 | POST | `/payments/create-order` | Yes | user | Create Razorpay order *(standalone — for unit/subscription purchases only. Booking payments embed order creation inside `POST /bookings`)* |
 | 2 | POST | `/payments/verify` | Yes | user | Verify payment after completion |
-| 3 | POST | `/payments/webhook` | No | — | Razorpay webhook (server-to-server) |
-| 4 | POST | `/payments/refund` | Yes | admin | Initiate refund |
-| 5 | GET | `/payments/history` | Yes | any | Get payment history |
+| 3 | POST | `/payments/webhook` | No | — | Razorpay webhook (server-to-server, NOT called from frontend) |
+| 4 | POST | `/payments/refund` | Yes | admin | Initiate refund for cancelled booking |
+| 5 | GET | `/payments/history` | Yes | any | Get full payment/transaction history (all types) |
+| 6 | GET | `/units/history` | Yes | user | Get unit-specific purchase and usage history (Wallet page) |
 
 **POST `/payments/verify`**
 ```
