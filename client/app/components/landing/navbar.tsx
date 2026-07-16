@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useAuth } from "../../lib/context/AuthContext";
 
 // Inline SVGs for zero dependency issues & crisp rendering
 const MapPinIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -109,6 +110,7 @@ const CITIES = [
 ];
 
 export default function Navbar() {
+  const { isAuthenticated, user } = useAuth();
   const [activeItem, setActiveItem] = useState<string>("Home");
   const [selectedCity, setSelectedCity] = useState<string>("Mumbai");
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState<boolean>(false);
@@ -251,12 +253,21 @@ export default function Navbar() {
             </div>
 
             {/* Login / Sign Up Gradient CTA Button */}
-            <Link
-              href="#login"
-              className="relative inline-flex items-center justify-center px-5 py-2 rounded-full text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-[#FF6A3D] via-[#FF4E6E] to-[#9B51E0] hover:opacity-95 shadow-lg shadow-rose-500/15 transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
-            >
-              <span>Login / Sign Up</span>
-            </Link>
+            {isAuthenticated && user ? (
+              <Link
+                href="/home"
+                className="relative inline-flex items-center justify-center px-5 py-2 rounded-full text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-[#0C4CD9] via-[#0098FF] to-[#9B51E0] hover:opacity-95 shadow-lg shadow-blue-500/15 transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
+              >
+                <span>Dashboard ({user.displayName || "Home"})</span>
+              </Link>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="relative inline-flex items-center justify-center px-5 py-2 rounded-full text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-[#FF6A3D] via-[#FF4E6E] to-[#9B51E0] hover:opacity-95 shadow-lg shadow-rose-500/15 transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
+              >
+                <span>Login / Sign Up</span>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Right Controls: Location Pill (mobile) + Hamburger */}
@@ -350,13 +361,23 @@ export default function Navbar() {
               })}
 
               <div className="pt-3 mt-2 border-t border-white/10 px-2">
-                <Link
-                  href="#login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-center px-5 py-3 rounded-full text-sm font-medium text-white bg-gradient-to-r from-[#FF6A3D] via-[#FF4E6E] to-[#9B51E0] shadow-lg shadow-rose-500/20"
-                >
-                  Login / Sign Up
-                </Link>
+                {isAuthenticated && user ? (
+                  <Link
+                    href="/home"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center px-5 py-3 rounded-full text-sm font-medium text-white bg-gradient-to-r from-[#0C4CD9] via-[#0098FF] to-[#9B51E0] shadow-lg shadow-blue-500/20"
+                  >
+                    Dashboard ({user.displayName || "Home"})
+                  </Link>
+                ) : (
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center px-5 py-3 rounded-full text-sm font-medium text-white bg-gradient-to-r from-[#FF6A3D] via-[#FF4E6E] to-[#9B51E0] shadow-lg shadow-rose-500/20"
+                  >
+                    Login / Sign Up
+                  </Link>
+                )}
               </div>
             </div>
           </div>
