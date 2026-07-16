@@ -9,19 +9,35 @@ class AuthService {
    * Find existing user by firebaseUid
    */
   static async getUserByFirebaseUid(firebaseUid) {
-    const params = {
+    const queryParams = {
       TableName: TABLE_NAME,
-      IndexName: "FirebaseUidIndex", // Optional index or fallback scan for dev
-      FilterExpression: "firebaseUid = :uid",
+      IndexName: "FirebaseUidIndex",
+      KeyConditionExpression: "firebaseUid = :uid",
       ExpressionAttributeValues: {
         ":uid": firebaseUid,
       },
     };
 
     try {
-      const items = await DynamoDBHelper.scanItems(params);
+      const items = await DynamoDBHelper.queryItems(queryParams);
       return items.length > 0 ? items[0] : null;
     } catch (error) {
+      if (
+        error.__type?.includes("ValidationException") ||
+        error.name === "ValidationException" ||
+        (error.message && error.message.includes("index"))
+      ) {
+        console.warn(`[AuthService] Index "FirebaseUidIndex" not found on table "${TABLE_NAME}". Falling back to table scan.`);
+        const scanParams = {
+          TableName: TABLE_NAME,
+          FilterExpression: "firebaseUid = :uid",
+          ExpressionAttributeValues: {
+            ":uid": firebaseUid,
+          },
+        };
+        const items = await DynamoDBHelper.scanItems(scanParams);
+        return items.length > 0 ? items[0] : null;
+      }
       console.error("Error finding user by firebaseUid:", error);
       throw error;
     }

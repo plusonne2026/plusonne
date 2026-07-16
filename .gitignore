@@ -17,3 +17,7 @@ Thumbs.db
 **/dist/
 **/build/
 **/coverage/
+
+# DynamoDB Local Data
+dynamodb_data/
+

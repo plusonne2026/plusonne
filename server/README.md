@@ -37,10 +37,14 @@ Server/
 
 ## Quick Start (Local Development)
 
-1. **Start DynamoDB Local Docker Container:**
+1. **Start DynamoDB Local & Admin GUI using Docker Compose:**
+   Run from the project root directory:
    ```bash
-   sudo docker run -d --name dynamodb-local -p 8000:8000 amazon/dynamodb-local
+   docker compose up -d
    ```
+   * **Database Port:** `8000`
+   * **Web Admin UI:** http://localhost:8001
+
 
 2. **Install Dependencies:**
    ```bash
