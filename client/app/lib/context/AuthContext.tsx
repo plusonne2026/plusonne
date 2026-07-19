@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { AuthAPI, User } from "../api/auth.api";
+import { AdminAPI } from "../api/admin.api";
 import {
   signInWithGoogle,
   signInWithEmail,
@@ -19,6 +20,7 @@ interface AuthContextType {
   isLoading: boolean;
   loginWithGoogle: () => Promise<{ user: User; isNewUser: boolean }>;
   loginWithEmail: (email: string, pass: string) => Promise<User>;
+  loginWithAdmin: (email: string, pass: string) => Promise<User>;
   registerWithEmail: (email: string, pass: string, name: string) => Promise<{ user: User; isNewUser: boolean }>;
   sendPhoneCode: (phone: string, verifier: RecaptchaVerifier) => Promise<ConfirmationResult>;
   confirmPhoneCode: (result: ConfirmationResult, otp: string) => Promise<{ user: User; isNewUser: boolean }>;
@@ -94,6 +96,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const { user: fbUser, token: idToken } = await signInWithEmail(email, pass);
       const profile = await AuthAPI.verifyToken(fbUser.uid);
+      saveSession(profile.userId, idToken, profile);
+      return profile;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithAdmin = async (email: string, pass: string) => {
+    setIsLoading(true);
+    try {
+      const { user: profile, token: idToken } = await AdminAPI.adminLogin(email, pass);
       saveSession(profile.userId, idToken, profile);
       return profile;
     } finally {
@@ -178,6 +191,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isLoading,
         loginWithGoogle,
         loginWithEmail,
+        loginWithAdmin,
         registerWithEmail,
         sendPhoneCode,
         confirmPhoneCode,

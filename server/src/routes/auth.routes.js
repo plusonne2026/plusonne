@@ -24,4 +24,11 @@ router.post("/verify-token", AuthController.verifyToken);
  */
 router.get("/me", AuthController.getProfile);
 
+/**
+ * @route   POST /api/v1/auth/admin-login
+ * @desc    Direct backend verification for admin accounts
+ * @access  Public
+ */
+router.post("/admin-login", AuthController.adminLogin);
+
 module.exports = router;

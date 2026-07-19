@@ -12,8 +12,14 @@ const config = {
   },
   tables: {
     users: process.env.DYNAMODB_TABLE_USERS || "PlusOne_Users",
+    hosts: process.env.DYNAMODB_TABLE_HOSTS || "PlusOne_HostProfiles",
   },
   jwtSecret: process.env.JWT_SECRET || "plusone_default_secret",
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || "demo",
+    apiKey: process.env.CLOUDINARY_API_KEY || "",
+    apiSecret: process.env.CLOUDINARY_API_SECRET || "",
+  },
 };
 
 module.exports = config;

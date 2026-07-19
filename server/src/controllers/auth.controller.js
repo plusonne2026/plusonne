@@ -103,6 +103,37 @@ class AuthController {
       next(err);
     }
   }
+
+  /**
+   * POST /api/v1/auth/admin-login
+   */
+  static async adminLogin(req, res, next) {
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "Email and password are required for admin login",
+        });
+      }
+
+      const user = await AuthService.adminLogin(email, password);
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid admin credentials or unauthorized role",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: user,
+        token: `admin-token-${user.userId}`,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = AuthController;

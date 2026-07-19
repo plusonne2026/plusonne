@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Outfit } from "next/font/google";
+import { Geist, Geist_Mono, Outfit, Raleway } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./lib/context/AuthContext";
+import { cn } from "@/lib/utils";
+
+const raleway = Raleway({subsets:['latin'],variable:'--font-sans'});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +35,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} h-full antialiased`}
+      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, outfit.variable, "font-sans", raleway.variable)}
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>{children}</AuthProvider>

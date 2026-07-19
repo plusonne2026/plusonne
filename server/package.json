@@ -6,16 +6,19 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "create-tables": "node src/scripts/createTables.js"
+    "create-tables": "node src/scripts/createTables.js",
+    "seed:admin": "node src/scripts/seedAdmin.js"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.750.0",
     "@aws-sdk/lib-dynamodb": "^3.750.0",
+    "cloudinary": "^2.10.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "joi": "^17.13.3",
     "morgan": "^1.10.0",
+    "multer": "^2.2.0",
     "uuid": "^11.0.5"
   },
   "devDependencies": {

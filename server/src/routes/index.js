@@ -2,8 +2,12 @@ const express = require("express");
 const { ListTablesCommand } = require("@aws-sdk/client-dynamodb");
 const { dynamoDbClient } = require("../config/dynamodb.config");
 const authRoutes = require("./auth.routes");
+const hostRoutes = require("./host.routes");
+const mediaRoutes = require("./media.routes");
+const adminRoutes = require("./admin.routes");
 
 const router = express.Router();
+
 
 /**
  * @route   GET /health
@@ -46,5 +50,8 @@ router.get("/health", async (req, res) => {
 
 // Mount modular routes
 router.use("/auth", authRoutes);
+router.use("/hosts", hostRoutes);
+router.use("/media", mediaRoutes);
+router.use("/admin", adminRoutes);
 
 module.exports = router;

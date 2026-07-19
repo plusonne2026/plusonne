@@ -17,8 +17,11 @@ export interface User {
   city?: string;
   preferredLanguages?: string[];
   status?: string;
+  totalBookings?: number;
+  totalSpent?: number;
   createdAt?: string;
   updatedAt?: string;
+  [key: string]: any;
 }
 
 export interface RegisterRequest {
