@@ -144,11 +144,10 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-        isScrolled
-          ? "bg-[#090B10]/95 backdrop-blur-xl border-b border-white/[0.08] shadow-xl shadow-black/40 py-3.5"
-          : "bg-[#090B10]/85 backdrop-blur-md border-b border-white/[0.05] py-4"
-      }`}
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${isScrolled
+        ? "bg-[#090B10]/95 backdrop-blur-xl border-b border-white/[0.08] shadow-xl shadow-black/40 py-3.5"
+        : "bg-[#090B10]/85 backdrop-blur-md border-b border-white/[0.05] py-4"
+        }`}
     >
       <div className="w-full max-w-[1800px] mx-auto px-5 sm:px-8 md:px-12 lg:px-16 xl:px-20">
         <nav className="flex items-center justify-between gap-4">
@@ -182,11 +181,10 @@ export default function Navbar() {
                   key={item.name}
                   href={item.href}
                   onClick={() => setActiveItem(item.name)}
-                  className={`relative py-1.5 text-sm font-medium transition-colors duration-200 ${
-                    isActive
-                      ? "text-white"
-                      : "text-zinc-400 hover:text-zinc-200"
-                  }`}
+                  className={`relative py-1.5 text-sm font-medium transition-colors duration-200 ${isActive
+                    ? "text-white"
+                    : "text-zinc-400 hover:text-zinc-200"
+                    }`}
                 >
                   {item.name}
                   {isActive && (
@@ -211,9 +209,8 @@ export default function Navbar() {
                 <MapPinIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400" />
                 <span>{selectedCity}</span>
                 <ChevronDownIcon
-                  className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 ${
-                    isCityDropdownOpen ? "rotate-180" : ""
-                  }`}
+                  className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 ${isCityDropdownOpen ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -234,11 +231,10 @@ export default function Navbar() {
                             setSelectedCity(city);
                             setIsCityDropdownOpen(false);
                           }}
-                          className={`w-full flex items-center justify-between px-3.5 py-2 text-sm transition-colors ${
-                            isSelected
-                              ? "bg-white/10 text-white font-medium"
-                              : "text-zinc-300 hover:bg-white/5 hover:text-white"
-                          }`}
+                          className={`w-full flex items-center justify-between px-3.5 py-2 text-sm transition-colors ${isSelected
+                            ? "bg-white/10 text-white font-medium"
+                            : "text-zinc-300 hover:bg-white/5 hover:text-white"
+                            }`}
                         >
                           <span>{city}</span>
                           {isSelected && (
@@ -253,21 +249,12 @@ export default function Navbar() {
             </div>
 
             {/* Login / Sign Up Gradient CTA Button */}
-            {isAuthenticated && user ? (
-              <Link
-                href="/home"
-                className="relative inline-flex items-center justify-center px-5 py-2 rounded-full text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-[#0C4CD9] via-[#0098FF] to-[#9B51E0] hover:opacity-95 shadow-lg shadow-blue-500/15 transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
-              >
-                <span>Dashboard ({user.displayName || "Home"})</span>
-              </Link>
-            ) : (
-              <Link
-                href="/auth/login"
-                className="relative inline-flex items-center justify-center px-5 py-2 rounded-full text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-[#FF6A3D] via-[#FF4E6E] to-[#9B51E0] hover:opacity-95 shadow-lg shadow-rose-500/15 transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
-              >
-                <span>Login / Sign Up</span>
-              </Link>
-            )}
+            <Link
+              href="/auth/login"
+              className="relative inline-flex items-center justify-center px-5 py-2 rounded-full text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-[#FF6A3D] via-[#FF4E6E] to-[#9B51E0] hover:opacity-95 shadow-lg shadow-rose-500/15 transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
+            >
+              <span>Login / Sign Up</span>
+            </Link>
           </div>
 
           {/* Mobile Right Controls: Location Pill (mobile) + Hamburger */}
@@ -315,11 +302,10 @@ export default function Navbar() {
                       setSelectedCity(city);
                       setIsCityDropdownOpen(false);
                     }}
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
-                      isSelected
-                        ? "bg-white/10 text-white"
-                        : "text-zinc-300 hover:bg-white/5"
-                    }`}
+                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors ${isSelected
+                      ? "bg-white/10 text-white"
+                      : "text-zinc-300 hover:bg-white/5"
+                      }`}
                   >
                     <span>{city}</span>
                     {isSelected && (
@@ -346,11 +332,10 @@ export default function Navbar() {
                       setActiveItem(item.name);
                       setIsMobileMenuOpen(false);
                     }}
-                    className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                      isActive
-                        ? "bg-white/10 text-white"
-                        : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
-                    }`}
+                    className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive
+                      ? "bg-white/10 text-white"
+                      : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                      }`}
                   >
                     <span>{item.name}</span>
                     {isActive && (
@@ -361,23 +346,13 @@ export default function Navbar() {
               })}
 
               <div className="pt-3 mt-2 border-t border-white/10 px-2">
-                {isAuthenticated && user ? (
-                  <Link
-                    href="/home"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center px-5 py-3 rounded-full text-sm font-medium text-white bg-gradient-to-r from-[#0C4CD9] via-[#0098FF] to-[#9B51E0] shadow-lg shadow-blue-500/20"
-                  >
-                    Dashboard ({user.displayName || "Home"})
-                  </Link>
-                ) : (
-                  <Link
-                    href="/auth/login"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center px-5 py-3 rounded-full text-sm font-medium text-white bg-gradient-to-r from-[#FF6A3D] via-[#FF4E6E] to-[#9B51E0] shadow-lg shadow-rose-500/20"
-                  >
-                    Login / Sign Up
-                  </Link>
-                )}
+                <Link
+                  href="#login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center px-5 py-3 rounded-full text-sm font-medium text-white bg-gradient-to-r from-[#FF6A3D] via-[#FF4E6E] to-[#9B51E0] shadow-lg shadow-rose-500/20"
+                >
+                  Login / Sign Up
+                </Link>
               </div>
             </div>
           </div>
