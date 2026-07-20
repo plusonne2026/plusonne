@@ -124,9 +124,9 @@ export default function AdminHostsManagementPage() {
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-[#131824] via-[#161D2D] to-[#131824] p-6 sm:p-8 rounded-[32px] border border-white/[0.08] shadow-2xl relative overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900 dark:bg-zinc-950 p-6 sm:p-8 rounded-3xl border border-zinc-800 shadow-2xl relative overflow-hidden">
         <div className="space-y-1.5 z-10">
-          <Badge className="bg-purple-500/20 text-purple-300 border border-purple-500/40 px-3 py-1 text-xs font-black uppercase tracking-widest">
+          <Badge className="bg-white text-black border border-white px-3 py-1 text-xs font-black uppercase tracking-widest">
             Identity Verification Portal
           </Badge>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
@@ -138,12 +138,12 @@ export default function AdminHostsManagementPage() {
         </div>
 
         <div className="flex items-center gap-3 z-10 shrink-0">
-          <div className="p-4 rounded-2xl bg-[#0D111A]/90 border border-amber-500/30 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center font-black text-base">
+          <div className="p-4 rounded-md bg-zinc-800 dark:bg-zinc-900 border border-zinc-700 dark:border-zinc-800 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-md bg-white text-black flex items-center justify-center font-black text-base">
               {pendingCount}
             </div>
             <div>
-              <p className="text-xs font-black uppercase text-amber-300">Pending Review</p>
+              <p className="text-xs font-black uppercase text-white">Pending Review</p>
               <p className="text-[11px] text-zinc-400">Requires action</p>
             </div>
           </div>
@@ -151,121 +151,121 @@ export default function AdminHostsManagementPage() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 text-sm flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+        <div className="p-4 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-200 text-sm flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-rose-500 dark:text-rose-400 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Main Table & Filter Section */}
-      <Card className="bg-[#0D111A]/90 border border-white/[0.08] rounded-3xl p-6 sm:p-8 space-y-6">
+      <Card className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
-            <TabsList className="bg-[#131824] p-1.5 rounded-2xl border border-white/[0.08] h-auto flex flex-wrap">
-              <TabsTrigger value="pending" className="rounded-xl px-4 py-2 text-xs font-extrabold data-[state=active]:bg-amber-500 data-[state=active]:text-black">
+            <TabsList className="bg-zinc-100 dark:bg-zinc-900 p-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 h-auto flex flex-wrap">
+              <TabsTrigger value="pending" className="rounded-md px-4 py-2 text-xs font-extrabold data-[state=active]:bg-black data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-black">
                 Pending KYC ({pendingCount})
               </TabsTrigger>
-              <TabsTrigger value="verified" className="rounded-xl px-4 py-2 text-xs font-extrabold data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              <TabsTrigger value="verified" className="rounded-md px-4 py-2 text-xs font-extrabold data-[state=active]:bg-black data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-black">
                 Verified Hosts ({verifiedCount})
               </TabsTrigger>
-              <TabsTrigger value="rejected" className="rounded-xl px-4 py-2 text-xs font-extrabold data-[state=active]:bg-rose-600 data-[state=active]:text-white">
+              <TabsTrigger value="rejected" className="rounded-md px-4 py-2 text-xs font-extrabold data-[state=active]:bg-black data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-black">
                 Rejected ({rejectedCount})
               </TabsTrigger>
-              <TabsTrigger value="all" className="rounded-xl px-4 py-2 text-xs font-extrabold data-[state=active]:bg-white/[0.1] data-[state=active]:text-white">
+              <TabsTrigger value="all" className="rounded-md px-4 py-2 text-xs font-extrabold data-[state=active]:bg-black data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-black">
                 All Records ({hosts.length})
               </TabsTrigger>
             </TabsList>
           </Tabs>
 
           <div className="relative w-full md:w-72">
-            <Search className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3 pointer-events-none" />
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3 pointer-events-none" />
             <Input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name, city, email..."
-              className="bg-[#131824] border-white/[0.08] focus:border-[#0098FF] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white h-10 w-full"
+              className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 focus:border-zinc-900 dark:focus:border-white rounded-md pl-10 pr-4 py-2.5 text-xs text-zinc-900 dark:text-white h-10 w-full"
             />
           </div>
         </div>
 
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#0098FF]" />
-            <p className="text-xs font-bold text-zinc-400">Loading host records from DynamoDB...</p>
+            <Loader2 className="w-8 h-8 animate-spin text-zinc-900 dark:text-white" />
+            <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400">Loading host records from DynamoDB...</p>
           </div>
         ) : filteredHosts.length === 0 ? (
           <div className="py-16 text-center space-y-2">
-            <div className="w-12 h-12 rounded-full bg-white/[0.05] flex items-center justify-center mx-auto text-zinc-500">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center mx-auto text-zinc-500">
+              <ShieldCheck className="w-6 h-6 text-zinc-900 dark:text-white" />
             </div>
-            <p className="text-sm font-bold text-white">No hosts found matching your criteria</p>
+            <p className="text-sm font-bold text-zinc-900 dark:text-white">No hosts found matching your criteria</p>
             <p className="text-xs text-zinc-500">Try adjusting your filter tabs or search keywords.</p>
           </div>
         ) : (
-          <div className="rounded-2xl border border-white/[0.08] overflow-hidden bg-[#131824]/40">
+          <div className="rounded-md border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-50/50 dark:bg-zinc-900/40">
             <Table>
-              <TableHeader className="bg-[#131824]">
-                <TableRow className="border-white/[0.08] hover:bg-transparent">
-                  <TableHead className="text-xs font-black uppercase text-zinc-400 py-4 px-4">Host Companion</TableHead>
-                  <TableHead className="text-xs font-black uppercase text-zinc-400 py-4 px-4">City & Experience</TableHead>
-                  <TableHead className="text-xs font-black uppercase text-zinc-400 py-4 px-4">Categories</TableHead>
-                  <TableHead className="text-xs font-black uppercase text-zinc-400 py-4 px-4">Trust Score</TableHead>
-                  <TableHead className="text-xs font-black uppercase text-zinc-400 py-4 px-4">KYC Status</TableHead>
-                  <TableHead className="text-xs font-black uppercase text-zinc-400 py-4 px-4 text-right">Action</TableHead>
+              <TableHeader className="bg-zinc-100 dark:bg-zinc-900">
+                <TableRow className="border-zinc-200 dark:border-zinc-800 hover:bg-transparent">
+                  <TableHead className="text-xs font-black uppercase text-zinc-600 dark:text-zinc-400 py-4 px-4">Host Companion</TableHead>
+                  <TableHead className="text-xs font-black uppercase text-zinc-600 dark:text-zinc-400 py-4 px-4">City & Experience</TableHead>
+                  <TableHead className="text-xs font-black uppercase text-zinc-600 dark:text-zinc-400 py-4 px-4">Categories</TableHead>
+                  <TableHead className="text-xs font-black uppercase text-zinc-600 dark:text-zinc-400 py-4 px-4">Trust Score</TableHead>
+                  <TableHead className="text-xs font-black uppercase text-zinc-600 dark:text-zinc-400 py-4 px-4">KYC Status</TableHead>
+                  <TableHead className="text-xs font-black uppercase text-zinc-600 dark:text-zinc-400 py-4 px-4 text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredHosts.map((host) => (
-                  <TableRow key={host.hostId} className="border-white/[0.06] hover:bg-white/[0.03] transition-colors">
+                  <TableRow key={host.hostId} className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100/80 dark:hover:bg-zinc-900 transition-colors">
                     <TableCell className="py-4 px-4">
                       <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10 border border-[#0098FF]/40 shrink-0">
+                        <Avatar className="w-10 h-10 border border-zinc-300 dark:border-zinc-700 shrink-0">
                           <AvatarImage src={host.avatarUrl || ""} alt={host.displayName || "Host"} />
-                          <AvatarFallback className="bg-gradient-to-tr from-[#0C4CD9] to-purple-600 text-white font-black text-xs">
+                          <AvatarFallback className="bg-black dark:bg-white text-white dark:text-black font-black text-xs">
                             {host.displayName ? host.displayName.substring(0, 2).toUpperCase() : "HO"}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-black text-white">{host.displayName || "Companion Host"}</p>
-                          <p className="text-xs text-zinc-400 truncate max-w-[160px]">{host.email || host.phone || "Verified Contact"}</p>
+                          <p className="text-sm font-black text-zinc-900 dark:text-white">{host.displayName || "Companion Host"}</p>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-[320px]">{host.email || host.phone || "Verified Contact"}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="py-4 px-4">
-                      <p className="text-sm font-bold text-slate-200">{host.city || "Mumbai"}</p>
-                      <p className="text-xs text-zinc-400">{host.experienceYears || 1} years exp.</p>
+                      <p className="text-sm font-bold text-zinc-800 dark:text-slate-200">{host.city || "Mumbai"}</p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">{host.experienceYears || 1} years exp.</p>
                     </TableCell>
                     <TableCell className="py-4 px-4">
-                      <div className="flex flex-wrap gap-1 max-w-[200px]">
+                      <div className="flex flex-wrap gap-1 max-w-[400px]">
                         {(host.categories || ["coffee_date"]).slice(0, 2).map((cat, i) => (
-                          <Badge key={i} className="bg-white/[0.06] text-zinc-300 border border-white/[0.1] text-[10px] font-bold">
+                          <Badge key={i} className="bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 text-[10px] font-bold">
                             {cat.replace("_", " ")}
                           </Badge>
                         ))}
                       </div>
                     </TableCell>
                     <TableCell className="py-4 px-4">
-                      <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-black text-xs px-2.5 py-1">
+                      <Badge className="bg-zinc-900 dark:bg-zinc-900 text-white border border-zinc-800 font-black text-xs px-2.5 py-1">
                         {host.hostTrustScore || 90}/100
                       </Badge>
                     </TableCell>
                     <TableCell className="py-4 px-4">
                       {host.kycStatus === "verified" && (
-                        <Badge className="bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2.5 py-1 font-extrabold text-[11px] flex items-center gap-1.5 w-fit">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-purple-400" />
+                        <Badge className="bg-zinc-900 text-white border border-zinc-800 px-2.5 py-1 font-extrabold text-[11px] flex items-center gap-1.5 w-fit">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                           <span>Verified</span>
                         </Badge>
                       )}
                       {host.kycStatus === "pending" && (
-                        <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 font-extrabold text-[11px] flex items-center gap-1.5 w-fit animate-pulse">
-                          <Clock className="w-3.5 h-3.5 text-amber-400" />
+                        <Badge className="bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white px-2.5 py-1 font-extrabold text-[11px] flex items-center gap-1.5 w-fit animate-pulse">
+                          <Clock className="w-3.5 h-3.5 text-white dark:text-black" />
                           <span>Pending Review</span>
                         </Badge>
                       )}
                       {host.kycStatus === "rejected" && (
-                        <Badge className="bg-rose-500/20 text-rose-300 border border-rose-500/40 px-2.5 py-1 font-extrabold text-[11px] flex items-center gap-1.5 w-fit">
-                          <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                        <Badge className="bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 px-2.5 py-1 font-extrabold text-[11px] flex items-center gap-1.5 w-fit">
+                          <XCircle className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
                           <span>Rejected</span>
                         </Badge>
                       )}
@@ -274,10 +274,10 @@ export default function AdminHostsManagementPage() {
                       <Button
                         size="sm"
                         onClick={() => handleReviewClick(host)}
-                        className={`rounded-xl px-4 py-2 text-xs font-bold shadow-md transition-all ${
+                        className={`rounded-md px-4 py-2 text-xs font-bold shadow-md transition-all ${
                           host.kycStatus === "pending"
-                            ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:scale-105 text-black font-black"
-                            : "bg-white/[0.08] hover:bg-white/[0.14] text-white"
+                            ? "bg-black hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-black font-black"
+                            : "bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
                         }`}
                       >
                         <Eye className="w-3.5 h-3.5 mr-1.5" />
@@ -294,36 +294,36 @@ export default function AdminHostsManagementPage() {
 
       {/* KYC Document Review & Decision Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl bg-[#0D111A] border border-white/[0.12] text-slate-100 rounded-[32px] p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl lg:max-w-5xl xl:max-w-[1150px] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-slate-100 rounded-3xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
           {selectedHost && (
             <div className="space-y-6">
               <DialogHeader>
                 <div className="flex items-center justify-between">
-                  <Badge className="bg-purple-500/20 text-purple-300 border border-purple-500/40 px-3 py-1 text-xs font-black uppercase tracking-wider">
+                  <Badge className="bg-zinc-900 text-white border border-zinc-800 px-3 py-1 text-xs font-black uppercase tracking-wider">
                     Host Application #{selectedHost.hostId}
                   </Badge>
-                  <span className="text-xs text-zinc-400">Applied: {selectedHost.createdAt ? new Date(selectedHost.createdAt).toLocaleDateString() : "Recently"}</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">Applied: {selectedHost.createdAt ? new Date(selectedHost.createdAt).toLocaleDateString() : "Recently"}</span>
                 </div>
-                <DialogTitle className="text-2xl font-black text-white mt-2 flex items-center gap-3">
-                  <Avatar className="w-12 h-12 border border-[#0098FF]">
+                <DialogTitle className="text-2xl font-black text-zinc-900 dark:text-white mt-2 flex items-center gap-3">
+                  <Avatar className="w-12 h-12 border border-zinc-300 dark:border-zinc-700">
                     <AvatarImage src={selectedHost.avatarUrl || ""} alt={selectedHost.displayName || "Host"} />
-                    <AvatarFallback className="bg-purple-600 text-white font-black">
+                    <AvatarFallback className="bg-black dark:bg-white text-white dark:text-black font-black">
                       {selectedHost.displayName ? selectedHost.displayName.substring(0, 2).toUpperCase() : "HO"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <p>{selectedHost.displayName || "Companion Host"}</p>
-                    <p className="text-xs text-zinc-400 font-normal">{selectedHost.city} • {selectedHost.experienceYears || 1} Years Experience</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-normal">{selectedHost.city} • {selectedHost.experienceYears || 1} Years Experience</p>
                   </div>
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-300 pt-2 leading-relaxed bg-white/[0.03] p-3 rounded-2xl border border-white/[0.06]">
+                <DialogDescription className="text-xs text-zinc-600 dark:text-zinc-300 pt-2 leading-relaxed bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-md border border-zinc-200 dark:border-zinc-800">
                   <strong>Host Bio:</strong> "{selectedHost.bio || "No bio provided yet."}"
                 </DialogDescription>
               </DialogHeader>
 
               {/* Bank Details Section */}
-              <div className="p-4 rounded-2xl bg-[#131824] border border-white/[0.08] space-y-2">
-                <h4 className="text-xs font-black uppercase tracking-wider text-[#0098FF] flex items-center gap-2">
+              <div className="p-4 rounded-md bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-2">
+                <h4 className="text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-white flex items-center gap-2">
                   <CreditCard className="w-4 h-4" />
                   <span>Payout Bank Account Details</span>
                 </h4>
@@ -331,59 +331,89 @@ export default function AdminHostsManagementPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
                     <div>
                       <span className="text-zinc-500 block">Holder Name</span>
-                      <strong className="text-white font-mono">{selectedHost.bankDetails.accountHolderName}</strong>
+                      <strong className="text-zinc-900 dark:text-white font-mono">{selectedHost.bankDetails.accountHolderName}</strong>
                     </div>
                     <div>
                       <span className="text-zinc-500 block">Account Number</span>
-                      <strong className="text-white font-mono">{selectedHost.bankDetails.accountNumber}</strong>
+                      <strong className="text-zinc-900 dark:text-white font-mono">{selectedHost.bankDetails.accountNumber}</strong>
                     </div>
                     <div>
                       <span className="text-zinc-500 block">IFSC Code</span>
-                      <strong className="text-white font-mono">{selectedHost.bankDetails.ifsc}</strong>
+                      <strong className="text-zinc-900 dark:text-white font-mono">{selectedHost.bankDetails.ifsc}</strong>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-zinc-400">No bank account linked yet (skipped during onboarding).</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">No bank account linked yet (skipped during onboarding).</p>
                 )}
               </div>
 
               {/* KYC Document Gallery Grid */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black uppercase tracking-wider text-purple-400 flex items-center gap-2">
+                <h4 className="text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-white flex items-center gap-2">
                   <FileText className="w-4 h-4" />
                   <span>Submitted KYC Verification Documents</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
-                    <p className="text-xs font-bold text-zinc-300">1. Aadhaar Card (Front/Back)</p>
-                    <div className="rounded-2xl overflow-hidden border border-white/[0.1] bg-black aspect-video relative group">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">1. Aadhaar Card (Front/Back)</p>
+                      <span className="text-[10px] text-zinc-400">Click to enlarge</span>
+                    </div>
+                    <div
+                      onClick={() => window.open(selectedHost.kycDocuments?.aadhaarUrl || "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80", "_blank")}
+                      className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-950 aspect-video relative group cursor-pointer flex items-center justify-center"
+                    >
                       <img
                         src={selectedHost.kycDocuments?.aadhaarUrl || "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80"}
                         alt="Aadhaar"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                       />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5">
+                        <Eye className="w-4 h-4" />
+                        <span>View Full ID</span>
+                      </div>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <p className="text-xs font-bold text-zinc-300">2. PAN Card Document</p>
-                    <div className="rounded-2xl overflow-hidden border border-white/[0.1] bg-black aspect-video relative group">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">2. PAN Card Document</p>
+                      <span className="text-[10px] text-zinc-400">Click to enlarge</span>
+                    </div>
+                    <div
+                      onClick={() => window.open(selectedHost.kycDocuments?.panUrl || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80", "_blank")}
+                      className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-950 aspect-video relative group cursor-pointer flex items-center justify-center"
+                    >
                       <img
                         src={selectedHost.kycDocuments?.panUrl || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80"}
                         alt="PAN"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                       />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5">
+                        <Eye className="w-4 h-4" />
+                        <span>View Full ID</span>
+                      </div>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <p className="text-xs font-bold text-zinc-300">3. Live Selfie Verification</p>
-                    <div className="rounded-2xl overflow-hidden border border-white/[0.1] bg-black aspect-video relative group">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">3. Live Selfie Verification</p>
+                      <span className="text-[10px] text-zinc-400">Click to enlarge</span>
+                    </div>
+                    <div
+                      onClick={() => window.open(selectedHost.kycDocuments?.photoUrl || selectedHost.avatarUrl || "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80", "_blank")}
+                      className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-950 aspect-video relative group cursor-pointer flex items-center justify-center"
+                    >
                       <img
                         src={selectedHost.kycDocuments?.photoUrl || selectedHost.avatarUrl || "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80"}
                         alt="Selfie"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                       />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5">
+                        <Eye className="w-4 h-4" />
+                        <span>View Full Photo</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -391,7 +421,7 @@ export default function AdminHostsManagementPage() {
 
               {/* Rejection Note Input */}
               <div className="space-y-1.5 pt-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   Rejection Reason (Required ONLY if Rejecting)
                 </label>
                 <Input
@@ -399,18 +429,18 @@ export default function AdminHostsManagementPage() {
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
                   placeholder="e.g. Aadhaar card photo is blurry. Please re-upload a high-resolution scan."
-                  className="bg-[#131824] border-white/[0.08] focus:border-rose-500 rounded-2xl px-4 py-3 text-xs text-white h-11"
+                  className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 focus:border-zinc-900 dark:focus:border-white rounded-md px-4 py-3 text-xs text-zinc-900 dark:text-white h-11"
                 />
               </div>
 
               {/* Action Buttons Footer */}
-              <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/[0.08]">
+              <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
                   disabled={actionLoading}
-                  className="rounded-2xl border-white/[0.12] bg-white/[0.05] hover:bg-white/[0.1] text-white font-bold h-12 px-6 text-xs"
+                  className="rounded-md border-zinc-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white font-bold h-12 px-6 text-xs"
                 >
                   Cancel
                 </Button>
@@ -419,7 +449,7 @@ export default function AdminHostsManagementPage() {
                   type="button"
                   onClick={() => handleStatusUpdate("rejected")}
                   disabled={actionLoading}
-                  className="rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold h-12 px-6 text-xs flex items-center gap-2 shadow-lg shadow-rose-600/25 transition-all"
+                  className="rounded-md bg-zinc-800 hover:bg-zinc-700 text-white font-extrabold h-12 px-6 text-xs flex items-center gap-2 border border-zinc-700 transition-all"
                 >
                   {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
                   <span>Reject Application</span>
@@ -429,7 +459,7 @@ export default function AdminHostsManagementPage() {
                   type="button"
                   onClick={() => handleStatusUpdate("verified")}
                   disabled={actionLoading}
-                  className="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:scale-[1.02] text-white font-black h-12 px-6 text-xs flex items-center gap-2 shadow-xl shadow-emerald-500/25 transition-all"
+                  className="rounded-md bg-black hover:bg-zinc-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-black font-black h-12 px-6 text-xs flex items-center gap-2 shadow-md transition-all"
                 >
                   {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 stroke-[3]" />}
                   <span>Approve & Verify Host</span>

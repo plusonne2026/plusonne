@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "../../../lib/context/AuthContext";
@@ -22,12 +22,29 @@ import { Badge } from "@/components/ui/badge";
 
 export default function AdminLoginPageComponent() {
   const router = useRouter();
-  const { loginWithAdmin } = useAuth();
+  const { loginWithAdmin, isAuthenticated, user, isLoading: authLoading } = useAuth();
   const [email, setEmail] = useState("admin@plusone.com");
   const [password, setPassword] = useState("Admin@123");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [quickLoginSuccess, setQuickLoginSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !quickLoginSuccess && isAuthenticated && user?.role === "admin") {
+      router.replace("/admin/dashboard");
+    }
+  }, [authLoading, quickLoginSuccess, isAuthenticated, user, router]);
+
+  if (authLoading || (!quickLoginSuccess && isAuthenticated && user?.role === "admin")) {
+    return (
+      <div className="min-h-screen bg-[#07090E] text-white flex items-center justify-center font-outfit">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-[#0098FF]" />
+          <span className="text-xs font-bold text-zinc-400">Checking Admin Session...</span>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,0 +1,76 @@
+import {
+  LayoutDashboard,
+  Users,
+  ShieldCheck,
+  Settings2,
+  ExternalLink,
+  Sparkles,
+  Database,
+  type LucideIcon,
+} from "lucide-react";
+import type { NavGroupProps } from "@/components/admin/nav-group";
+
+export interface SidebarData {
+  teams: {
+    name: string;
+    logo: LucideIcon;
+    plan: string;
+  }[];
+  navGroups: NavGroupProps[];
+  user: {
+    name: string;
+    email: string;
+    avatar: string;
+    role?: string;
+  };
+}
+
+export const sidebarData: SidebarData = {
+  teams: [
+    {
+      name: "PlusOnne Platform",
+      logo: Sparkles,
+      plan: "Master Admin",
+    },
+    {
+      name: "KYC Review Portal",
+      logo: ShieldCheck,
+      plan: "Verification",
+    },
+    {
+      name: "AWS DynamoDB Engine",
+      logo: Database,
+      plan: "ap-south-1",
+    },
+  ],
+  navGroups: [
+    {
+      items: [
+        {
+          title: "Dashboard Overview",
+          url: "/admin/dashboard",
+          icon: LayoutDashboard,
+        },
+        {
+          title: "Host Network & KYC",
+          url: "/admin/hosts",
+          icon: ShieldCheck,
+          badge: 0, // Dynamically updated if KYC pending exists
+        },
+        {
+          title: "User Directory",
+          url: "/admin/users",
+          icon: Users,
+        },
+        
+        
+      ],
+    },
+  ],
+  user: {
+    name: "Master Admin",
+    email: "admin@plusone.com",
+    avatar: "",
+    role: "admin",
+  },
+};
