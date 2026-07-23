@@ -1,6 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
+import {
+  RiQuestionAnswerFill,
+  RiArrowDownSLine,
+  RiCustomerService2Fill,
+} from "@remixicon/react";
 
 interface FAQItem {
   question: string;
@@ -51,7 +56,12 @@ export default function HelpSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [selectedCat, setSelectedCat] = useState<string>("All");
 
-  const categories = ["All", "Safety & Trust", "Pricing & Booking", "Host Onboarding"];
+  const categories = [
+    "All",
+    "Safety & Trust",
+    "Pricing & Booking",
+    "Host Onboarding",
+  ];
 
   const filteredFaqs =
     selectedCat === "All"
@@ -59,7 +69,10 @@ export default function HelpSection() {
       : FAQS.filter((faq) => faq.category === selectedCat);
 
   return (
-    <section id="help" className="relative py-24 bg-[#090C16] overflow-hidden border-t border-white/[0.06]">
+    <section
+      id="help"
+      className="relative py-24 bg-[#090C16] overflow-hidden border-t border-white/[0.06]"
+    >
       {/* Background Ambient Glow */}
       <div className="absolute top-1/2 right-10 -translate-y-1/2 w-[500px] h-[350px] bg-gradient-to-l from-cyan-500/10 via-blue-500/10 to-transparent blur-[140px] pointer-events-none -z-10" />
 
@@ -67,7 +80,7 @@ export default function HelpSection() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs sm:text-sm font-semibold text-cyan-400 mb-4 backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <RiQuestionAnswerFill className="w-4 h-4 text-cyan-400" />
             <span>Help, Safety & FAQs</span>
           </div>
 
@@ -124,9 +137,7 @@ export default function HelpSection() {
                       isOpen ? "rotate-180 bg-white/10 text-white" : "text-zinc-400"
                     }`}
                   >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
+                    <RiArrowDownSLine className="w-5 h-5" />
                   </div>
                 </button>
 
@@ -142,7 +153,12 @@ export default function HelpSection() {
 
         {/* Still Need Help Box */}
         <div className="mt-14 p-8 rounded-3xl bg-gradient-to-r from-blue-900/20 via-indigo-900/20 to-purple-900/20 border border-blue-500/20 text-center">
-          <h3 className="text-xl font-bold text-white font-outfit">Still have questions?</h3>
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mx-auto mb-4 text-blue-400">
+            <RiCustomerService2Fill className="w-6 h-6" />
+          </div>
+          <h3 className="text-xl font-bold text-white font-outfit">
+            Still have questions?
+          </h3>
           <p className="text-sm text-zinc-400 mt-2">
             Our 24/7 customer support and trust team is ready to assist you.
           </p>

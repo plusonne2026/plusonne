@@ -1,6 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
+import {
+  RiCheckboxCircleFill,
+  RiMoneyRupeeCircleFill,
+  RiVipCrown2Fill,
+} from "@remixicon/react";
 
 interface Plan {
   id: string;
@@ -22,7 +27,8 @@ const PLANS: Plan[] = [
     badge: "Pay-As-You-Go",
     price: "₹1,000",
     period: "per service unit",
-    description: "Perfect for single coffee dates, city walks, or trying out PlusOnne for the first time.",
+    description:
+      "Perfect for single coffee dates, city walks, or trying out PlusOnne for the first time.",
     features: [
       "Up to 1 hour of host companion time",
       "Covers up to 10 km travel included",
@@ -40,7 +46,8 @@ const PLANS: Plan[] = [
     popular: true,
     price: "₹10,000",
     period: "10 Service Credits",
-    description: "Great for frequent socializers, commuters, or weekend travelers who need companions.",
+    description:
+      "Great for frequent socializers, commuters, or weekend travelers who need companions.",
     features: [
       "10 Full Service Units included (₹1,000/unit)",
       "Covers up to 100 km cumulative travel",
@@ -58,7 +65,8 @@ const PLANS: Plan[] = [
     badge: "All Access Pass",
     price: "₹10,000",
     period: "per month",
-    description: "Designed for corporate professionals and expats seeking regular weekend companionship.",
+    description:
+      "Designed for corporate professionals and expats seeking regular weekend companionship.",
     features: [
       "Covers 2 Full Weekend Experiences",
       "20% OFF all extra distance & minute charges",
@@ -76,7 +84,10 @@ export default function PackagesSection() {
   const [billingCycle, setBillingCycle] = useState<"standard" | "annual">("standard");
 
   return (
-    <section id="packages" className="relative py-24 bg-[#080A10] overflow-hidden border-t border-white/[0.06]">
+    <section
+      id="packages"
+      className="relative py-24 bg-[#080A10] overflow-hidden border-t border-white/[0.06]"
+    >
       {/* Background Ambient Glow */}
       <div className="absolute top-10 right-1/4 w-[500px] h-[350px] bg-gradient-to-l from-rose-500/10 via-purple-500/10 to-transparent blur-[140px] pointer-events-none -z-10" />
 
@@ -100,7 +111,7 @@ export default function PackagesSection() {
           </p>
         </div>
 
-        {/* Billing Toggle (Standard vs Annual discount callout) */}
+        {/* Billing Toggle */}
         <div className="mt-10 flex items-center justify-center">
           <div className="p-1 rounded-full bg-[#121522] border border-white/10 flex items-center gap-1">
             <button
@@ -124,7 +135,9 @@ export default function PackagesSection() {
               }`}
             >
               <span>VIP Pass</span>
-              <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-white/20 font-bold">20% OFF</span>
+              <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-white/20 font-bold">
+                20% OFF
+              </span>
             </button>
           </div>
         </div>
@@ -142,35 +155,39 @@ export default function PackagesSection() {
             >
               {/* Popular Badge header */}
               {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-[#FF6A3D] to-[#FF4E6E] text-white text-xs font-bold shadow-lg shadow-rose-500/30 uppercase tracking-wider">
-                  ⭐ Most Popular Choice
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-[#FF6A3D] to-[#FF4E6E] text-white text-xs font-bold shadow-lg shadow-rose-500/30 uppercase tracking-wider flex items-center gap-1">
+                  <RiVipCrown2Fill className="w-3.5 h-3.5" />
+                  <span>Most Popular Choice</span>
                 </div>
               )}
 
               <div>
                 {/* Plan Header */}
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-white font-outfit">{plan.name}</h3>
+                  <h3 className="text-xl font-bold text-white font-outfit">
+                    {plan.name}
+                  </h3>
                   <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-white/10 text-zinc-300 border border-white/10">
                     {plan.badge}
                   </span>
                 </div>
 
-                <p className="text-sm text-zinc-400 min-h-[40px] mb-6">{plan.description}</p>
+                <p className="text-sm text-zinc-400 min-h-[40px] mb-6">
+                  {plan.description}
+                </p>
 
                 {/* Price Display */}
                 <div className="flex items-baseline gap-2 mb-6">
                   <span className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight font-outfit">
                     {plan.price}
                   </span>
-                  <span className="text-sm text-zinc-400 font-medium">{plan.period}</span>
+                  <span className="text-sm text-zinc-400 font-medium">
+                    {plan.period}
+                  </span>
                 </div>
 
                 <div className="py-2.5 px-3.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-xs font-medium text-amber-300 mb-8 flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M12 2v20" />
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                  </svg>
+                  <RiMoneyRupeeCircleFill className="w-4 h-4 text-amber-400 shrink-0" />
                   <span>{plan.highlight}</span>
                 </div>
 
@@ -180,12 +197,11 @@ export default function PackagesSection() {
                     What's Included:
                   </div>
                   {plan.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-start gap-3 text-sm text-zinc-300">
-                      <div className="p-1 rounded-full bg-emerald-500/10 text-emerald-400 shrink-0 mt-0.5">
-                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      </div>
+                    <div
+                      key={idx}
+                      className="flex items-start gap-3 text-sm text-zinc-300"
+                    >
+                      <RiCheckboxCircleFill className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                       <span>{feature}</span>
                     </div>
                   ))}

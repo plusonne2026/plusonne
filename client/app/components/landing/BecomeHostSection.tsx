@@ -1,10 +1,19 @@
 "use client";
 
 import React from "react";
+import {
+  RiUserStarFill,
+  RiCheckboxCircleFill,
+  RiMoneyRupeeCircleFill,
+  RiMagicFill,
+} from "@remixicon/react";
 
 export default function BecomeHostSection() {
   return (
-    <section id="become-a-host" className="relative py-24 bg-[#080A10] overflow-hidden border-t border-white/[0.06]">
+    <section
+      id="become-a-host"
+      className="relative py-24 bg-[#080A10] overflow-hidden border-t border-white/[0.06]"
+    >
       {/* Background Ambient Glow */}
       <div className="absolute top-10 left-10 w-[500px] h-[400px] bg-gradient-to-tr from-amber-500/10 via-orange-500/10 to-rose-500/10 blur-[150px] pointer-events-none -z-10" />
 
@@ -13,7 +22,7 @@ export default function BecomeHostSection() {
           {/* Left Column: Information & Earnings Breakdown */}
           <div className="lg:col-span-7 space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs sm:text-sm font-semibold text-amber-400 backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <RiUserStarFill className="w-4 h-4 text-amber-400" />
               <span>Become a PlusOnne Founding Host</span>
             </div>
 
@@ -31,51 +40,63 @@ export default function BecomeHostSection() {
             {/* Earnings & Split Highlights Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
               <div className="p-4 rounded-2xl bg-[#121524] border border-white/10">
-                <div className="text-2xl font-extrabold text-amber-400 font-outfit">70 / 30</div>
-                <div className="text-xs font-semibold text-white mt-1">Host Revenue Split</div>
-                <p className="text-[11px] text-zinc-400 mt-1">You keep 70% of every base service & distance fee.</p>
+                <div className="text-2xl font-extrabold text-amber-400 font-outfit">
+                  70 / 30
+                </div>
+                <div className="text-xs font-semibold text-white mt-1">
+                  Host Revenue Split
+                </div>
+                <p className="text-[11px] text-zinc-400 mt-1">
+                  You keep 70% of every base service & distance fee.
+                </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-[#121524] border border-white/10">
-                <div className="text-2xl font-extrabold text-orange-400 font-outfit">₹10,000</div>
-                <div className="text-xs font-semibold text-white mt-1">Guaranteed Base</div>
-                <p className="text-[11px] text-zinc-400 mt-1">Fixed monthly base salary for 10 minimum completed services.</p>
+                <div className="text-2xl font-extrabold text-orange-400 font-outfit">
+                  ₹10,000
+                </div>
+                <div className="text-xs font-semibold text-white mt-1">
+                  Guaranteed Base
+                </div>
+                <p className="text-[11px] text-zinc-400 mt-1">
+                  Fixed monthly base salary for 10 minimum completed services.
+                </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-[#121524] border border-white/10">
-                <div className="text-2xl font-extrabold text-rose-400 font-outfit">NGO Certified</div>
-                <div className="text-xs font-semibold text-white mt-1">Free Soft Skills Training</div>
-                <p className="text-[11px] text-zinc-400 mt-1">Professional etiquette, communication, & safety training.</p>
+                <div className="text-2xl font-extrabold text-rose-400 font-outfit">
+                  NGO Certified
+                </div>
+                <div className="text-xs font-semibold text-white mt-1">
+                  Free Soft Skills Training
+                </div>
+                <p className="text-[11px] text-zinc-400 mt-1">
+                  Professional etiquette, communication, & safety training.
+                </p>
               </div>
             </div>
 
             {/* Feature Checklist */}
             <div className="space-y-3 pt-2">
               <div className="flex items-center gap-3 text-sm text-zinc-300">
-                <div className="p-1 rounded-full bg-amber-500/20 text-amber-400">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <span><strong>Flexible Scheduling:</strong> Pick the dates, hours, & categories you want to host.</span>
+                <RiCheckboxCircleFill className="w-5 h-5 text-amber-400 shrink-0" />
+                <span>
+                  <strong>Flexible Scheduling:</strong> Pick the dates, hours, & categories you want to host.
+                </span>
               </div>
 
               <div className="flex items-center gap-3 text-sm text-zinc-300">
-                <div className="p-1 rounded-full bg-amber-500/20 text-amber-400">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <span><strong>Growth Track to Team Manager:</strong> High performing hosts get promoted to Team Managers with ₹30,000/mo fixed salary.</span>
+                <RiCheckboxCircleFill className="w-5 h-5 text-amber-400 shrink-0" />
+                <span>
+                  <strong>Growth Track to Team Manager:</strong> High performing hosts get promoted to Team Managers with ₹30,000/mo fixed salary.
+                </span>
               </div>
 
               <div className="flex items-center gap-3 text-sm text-zinc-300">
-                <div className="p-1 rounded-full bg-amber-500/20 text-amber-400">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <span><strong>24/7 Safety Dispatch:</strong> Dedicated SOS button and live emergency response team.</span>
+                <RiCheckboxCircleFill className="w-5 h-5 text-amber-400 shrink-0" />
+                <span>
+                  <strong>24/7 Safety Dispatch:</strong> Dedicated SOS button and live emergency response team.
+                </span>
               </div>
             </div>
 
@@ -83,9 +104,10 @@ export default function BecomeHostSection() {
             <div className="pt-4 flex flex-wrap items-center gap-4">
               <a
                 href="/host/apply"
-                className="px-8 py-4 rounded-full text-sm font-semibold text-zinc-950 bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 hover:opacity-95 shadow-xl shadow-amber-500/20 transition-all hover:scale-105"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-full text-sm font-semibold text-zinc-950 bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 hover:opacity-95 shadow-xl shadow-amber-500/20 transition-all hover:scale-105"
               >
-                Apply to Become a Host
+                <RiMagicFill className="w-4 h-4 text-zinc-950" />
+                <span>Apply to Become a Host</span>
               </a>
               <a
                 href="#help"
@@ -100,10 +122,7 @@ export default function BecomeHostSection() {
           <div className="lg:col-span-5">
             <div className="relative rounded-3xl bg-gradient-to-b from-[#181C2E] via-[#121524] to-[#0A0D18] border border-white/10 p-8 shadow-2xl overflow-hidden">
               <div className="absolute top-0 right-0 p-6 opacity-20 text-amber-400">
-                <svg className="w-32 h-32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                  <path d="M12 2v20" />
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
+                <RiMoneyRupeeCircleFill className="w-32 h-32" />
               </div>
 
               <div className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 mb-6">
@@ -127,9 +146,15 @@ export default function BecomeHostSection() {
                 </div>
 
                 <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 mt-6 text-center">
-                  <span className="text-xs font-semibold text-amber-300 uppercase tracking-wider block">Estimated Monthly Take-Home</span>
-                  <span className="text-3xl font-extrabold text-white mt-1 block font-outfit">₹27,500 / month</span>
-                  <span className="text-[11px] text-zinc-400 mt-1 block">Includes base stipend + 70% commission earnings</span>
+                  <span className="text-xs font-semibold text-amber-300 uppercase tracking-wider block">
+                    Estimated Monthly Take-Home
+                  </span>
+                  <span className="text-3xl font-extrabold text-white mt-1 block font-outfit">
+                    ₹27,500 / month
+                  </span>
+                  <span className="text-[11px] text-zinc-400 mt-1 block">
+                    Includes base stipend + 70% commission earnings
+                  </span>
                 </div>
               </div>
             </div>
