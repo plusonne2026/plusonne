@@ -90,7 +90,7 @@ export interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { name: "Home", href: "/" },
+  { name: "Home", href: "#home" },
   { name: "Categories", href: "#categories" },
   { name: "Packages", href: "#packages" },
   { name: "How It Works", href: "#how-it-works" },
@@ -119,13 +119,41 @@ export default function Navbar() {
 
   const cityDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Handle scroll effect for header elevation & glassmorphism
+  // Handle scroll effect for header elevation & active section scroll-spy
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 15);
     };
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    // ScrollSpy using IntersectionObserver
+    const sectionIds = ["home", "categories", "packages", "how-it-works", "become-a-host", "help"];
+    const sectionElements = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const matchingItem = NAV_ITEMS.find(
+              (item) => item.href === `#${entry.target.id}`
+            );
+            if (matchingItem) {
+              setActiveItem(matchingItem.name);
+            }
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    sectionElements.forEach((el) => observer.observe(el));
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      sectionElements.forEach((el) => observer.unobserve(el));
+    };
   }, []);
 
   // Close city dropdown when clicking outside
