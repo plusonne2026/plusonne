@@ -14,6 +14,13 @@ const router = express.Router();
 router.post("/register", authenticate, HostController.register);
 
 /**
+ * @route   GET /api/v1/hosts/active
+ * @desc    Get all active and verified hosts
+ * @access  Public
+ */
+router.get("/active", HostController.getActiveHosts);
+
+/**
  * @route   GET /api/v1/hosts/me
  * @desc    Get current host profile details
  * @access  Authenticated Host

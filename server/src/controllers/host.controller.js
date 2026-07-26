@@ -185,6 +185,22 @@ class HostController {
       next(err);
     }
   }
+
+  /**
+   * GET /api/v1/hosts/active
+   */
+  static async getActiveHosts(req, res, next) {
+    try {
+      const activeHosts = await HostService.getActiveHosts();
+      return res.status(200).json({
+        success: true,
+        count: activeHosts.length,
+        data: activeHosts,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = HostController;

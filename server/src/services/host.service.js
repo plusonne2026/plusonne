@@ -130,8 +130,36 @@ class HostService {
    * Admin: Get all pending KYC applications
    */
   static async getPendingKycApplications() {
-    const allHosts = await DynamoDBHelper.scanTable(HOSTS_TABLE);
+    const allHosts = await DynamoDBHelper.scanItems({ TableName: HOSTS_TABLE });
     return allHosts.filter((host) => host.kycStatus === "pending");
+  }
+
+  /**
+   * Public/User: Get all active, verified hosts
+   */
+  static async getActiveHosts() {
+    const allHosts = await DynamoDBHelper.scanItems({ TableName: HOSTS_TABLE });
+    // Filter for verified hosts. We can also check isOnline here if needed.
+    const verifiedHosts = allHosts.filter(
+      (host) => host.kycStatus === "verified"
+    );
+
+    // Fetch user details for each verified host to get displayName, avatarUrl, and city
+    const activeHostsWithUserDetails = await Promise.all(
+      verifiedHosts.map(async (host) => {
+        const userProfile = await DynamoDBHelper.getItem(USERS_TABLE, {
+          userId: host.hostId,
+        });
+        return {
+          ...host,
+          displayName: userProfile?.displayName || "Verified Host",
+          avatarUrl: userProfile?.avatarUrl || null,
+          city: userProfile?.city || "",
+        };
+      })
+    );
+
+    return activeHostsWithUserDetails;
   }
 }
 

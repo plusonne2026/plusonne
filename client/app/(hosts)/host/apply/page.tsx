@@ -38,40 +38,19 @@ import {
 } from "lucide-react";
 import { RecaptchaVerifier, ConfirmationResult } from "firebase/auth";
 
-const CATEGORY_OPTIONS = [
-  {
-    id: "coffee_date",
-    name: "Coffee & Dinner Companion",
-    icon: Coffee,
-    color: "from-amber-500 to-orange-600",
-    desc: "Engaging conversations over fine dining, artisanal brews, and cozy cafes.",
-    rate: "₹1,200 / hr avg",
-  },
-  {
-    id: "explorer",
-    name: "City Explorer & Sightseeing",
-    icon: Compass,
-    color: "from-blue-500 to-cyan-600",
-    desc: "Guide guests through hidden local gems, historical monuments, and cultural hotspots.",
-    rate: "₹1,500 / hr avg",
-  },
-  {
-    id: "sports_partner",
-    name: "Sports & Workout Buddy",
-    icon: Trophy,
-    color: "from-emerald-500 to-teal-600",
-    desc: "Tennis hitting partner, gym spotter, badminton buddy, or morning run motivator.",
-    rate: "₹1,000 / hr avg",
-  },
-  {
-    id: "event_companion",
-    name: "Party & Concert PlusOne",
-    icon: PartyPopper,
-    color: "from-purple-500 to-pink-600",
-    desc: "Be the vibrant plus-one for weddings, high-end galas, and VIP music festivals.",
-    rate: "₹2,000 / hr avg",
-  },
-];
+import categoryData from "../../../lib/data/categories.json";
+
+const ICON_MAP: Record<string, any> = {
+  Coffee,
+  Compass,
+  Trophy,
+  PartyPopper,
+};
+
+const CATEGORY_OPTIONS = categoryData.map((c) => ({
+  ...c,
+  icon: ICON_MAP[c.icon],
+}));
 
 const LANGUAGE_OPTIONS = [
   "English",

@@ -128,4 +128,13 @@ export const HostAPI = {
     const res = await apiClient.get<{ success: boolean; data: HostProfile[] }>("/hosts/pending-kyc");
     return res.data;
   },
+
+  /**
+   * User: Get all active, verified hosts
+   * GET /api/v1/hosts/active
+   */
+  getActiveHosts: async (): Promise<HostProfile[]> => {
+    const res = await apiClient.get<{ success: boolean; data: HostProfile[] }>("/hosts/active");
+    return res.data;
+  },
 };
