@@ -1,6 +1,14 @@
 "use client";
 
 import React from "react";
+import {
+  RiSearchEyeFill,
+  RiUserSearchFill,
+  RiShieldKeyholeFill,
+  RiEmotionHappyFill,
+  RiShieldCheckFill,
+  RiArrowRightSLine,
+} from "@remixicon/react";
 
 const STEPS = [
   {
@@ -9,12 +17,7 @@ const STEPS = [
     description:
       "Choose from curated experiences — coffee dates, city walks, gym partners, gala +1s, or senior care.",
     badge: "Step 1",
-    icon: (
-      <svg className="w-6 h-6 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="11" cy="11" r="8" />
-        <path d="m21 21-4.3-4.3" />
-      </svg>
-    ),
+    icon: <RiSearchEyeFill className="w-6 h-6 text-orange-400" />,
   },
   {
     step: "02",
@@ -22,13 +25,7 @@ const STEPS = [
     description:
       "Browse 100% DigiLocker-verified, background-checked hosts with real ratings, video intros, & bios.",
     badge: "Step 2",
-    icon: (
-      <svg className="w-6 h-6 text-pink-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <polyline points="16 11 18 13 22 9" />
-      </svg>
-    ),
+    icon: <RiUserSearchFill className="w-6 h-6 text-pink-400" />,
   },
   {
     step: "03",
@@ -36,12 +33,7 @@ const STEPS = [
     description:
       "Confirm your session unit or pass. Unlock live GPS tracking, live face matching, and secure OTP verification.",
     badge: "Step 3",
-    icon: (
-      <svg className="w-6 h-6 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-      </svg>
-    ),
+    icon: <RiShieldKeyholeFill className="w-6 h-6 text-purple-400" />,
   },
   {
     step: "04",
@@ -49,17 +41,16 @@ const STEPS = [
     description:
       "Meet safely in public venues. Enjoy memorable company with 24/7 SOS security shield active on your app.",
     badge: "Step 4",
-    icon: (
-      <svg className="w-6 h-6 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-      </svg>
-    ),
+    icon: <RiEmotionHappyFill className="w-6 h-6 text-cyan-400" />,
   },
 ];
 
 export default function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="relative py-24 bg-[#090C16] overflow-hidden border-t border-white/[0.06]">
+    <section
+      id="how-it-works"
+      className="relative py-24 bg-[#090C16] overflow-hidden border-t border-white/[0.06]"
+    >
       {/* Background Ambient Glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-blue-600/10 blur-[150px] pointer-events-none -z-10" />
 
@@ -117,9 +108,7 @@ export default function HowItWorksSection() {
               {/* Progress connector indicator */}
               {index < STEPS.length - 1 && (
                 <div className="hidden lg:block absolute -right-4 top-1/2 -translate-y-1/2 z-20 text-white/20">
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="m9 18 6-6-6-6" />
-                  </svg>
+                  <RiArrowRightSLine className="w-6 h-6" />
                 </div>
               )}
             </div>
@@ -130,13 +119,12 @@ export default function HowItWorksSection() {
         <div className="mt-16 rounded-3xl bg-gradient-to-r from-[#121526] via-[#1A1D33] to-[#121526] border border-white/10 p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
           <div className="flex items-center gap-5">
             <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 shrink-0">
-              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="m9 12 2 2 4-4" />
-              </svg>
+              <RiShieldCheckFill className="w-8 h-8" />
             </div>
             <div>
-              <h4 className="text-xl font-bold text-white font-outfit">100% Safety & Verification Shield</h4>
+              <h3 className="text-xl font-bold text-white font-outfit">
+                100% Safety & Verification Shield
+              </h3>
               <p className="text-sm text-zinc-400 mt-1">
                 Every Host passes DigiLocker KYC, video interviews, background checks, & live face matching before service start.
               </p>

@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { RiVerifiedBadgeFill, RiShieldCheckFill } from "@remixicon/react";
 
 export default function Footer() {
   return (
@@ -29,20 +30,22 @@ export default function Footer() {
             </p>
 
             <div className="flex items-center gap-3 pt-2">
-              <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                ✓ DigiLocker Verified
+              <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                <RiVerifiedBadgeFill className="w-3.5 h-3.5" />
+                <span>DigiLocker Verified</span>
               </span>
-              <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                🛡️ 24/7 SOS Shield
+              <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1">
+                <RiShieldCheckFill className="w-3.5 h-3.5" />
+                <span>24/7 SOS Shield</span>
               </span>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider font-outfit mb-4">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider font-outfit mb-4">
               Explore
-            </h4>
+            </h3>
             <ul className="space-y-2.5 text-sm">
               <li>
                 <a href="#categories" className="hover:text-white transition-colors">
@@ -69,9 +72,9 @@ export default function Footer() {
 
           {/* Categories */}
           <div>
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider font-outfit mb-4">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider font-outfit mb-4">
               Categories
-            </h4>
+            </h3>
             <ul className="space-y-2.5 text-sm">
               <li>
                 <a href="#categories" className="hover:text-white transition-colors">
@@ -103,9 +106,9 @@ export default function Footer() {
 
           {/* Legal & Trust */}
           <div>
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider font-outfit mb-4">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider font-outfit mb-4">
               Trust & Legal
-            </h4>
+            </h3>
             <ul className="space-y-2.5 text-sm">
               <li>
                 <a href="#help" className="hover:text-white transition-colors">
@@ -134,7 +137,7 @@ export default function Footer() {
         {/* Bottom copyright */}
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
           <div>
-            © {new Date().getFullYear()} PlusOnne Experience Platform. All rights reserved.
+            © 2026 PlusOnne Experience Platform. All rights reserved.
           </div>
           <div>
             Crafted for Extraordinary Moments across India.
