@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   RiSearchEyeFill,
   RiUserSearchFill,
@@ -131,12 +132,12 @@ export default function HowItWorksSection() {
             </div>
           </div>
 
-          <a
-            href="#help"
+          <Link
+            href="/help"
             className="px-6 py-3 rounded-full text-xs sm:text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/15 shrink-0 transition-all"
           >
             Learn About Safety
-          </a>
+          </Link>
         </div>
       </div>
     </section>

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   RiUserStarFill,
   RiCheckboxCircleFill,
@@ -109,12 +110,12 @@ export default function BecomeHostSection() {
                 <RiMagicFill className="w-4 h-4 text-zinc-950" />
                 <span>Apply to Become a Host</span>
               </a>
-              <a
-                href="#help"
+              <Link
+                href="/help"
                 className="px-6 py-4 rounded-full text-sm font-semibold text-zinc-300 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 transition-all"
               >
                 Host Hiring FAQs
-              </a>
+              </Link>
             </div>
           </div>
 

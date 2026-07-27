@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "../../lib/context/AuthContext";
 import {
   RiMapPinFill,
@@ -21,12 +22,12 @@ export interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { name: "Home", href: "#home" },
-  { name: "Categories", href: "#categories" },
-  { name: "Packages", href: "#packages" },
-  { name: "How It Works", href: "#how-it-works" },
-  { name: "Become a Host", href: "#become-a-host" },
-  { name: "Help", href: "#help" },
+  { name: "Home", href: "/" },
+  { name: "Categories", href: "/categories" },
+  { name: "Packages", href: "/packages" },
+  { name: "How It Works", href: "/how-it-works" },
+  { name: "Become a Host", href: "/become-a-host" },
+  { name: "Help", href: "/help" },
 ];
 
 const CITIES = [
@@ -42,7 +43,7 @@ const CITIES = [
 
 export default function Navbar() {
   const { isAuthenticated, user } = useAuth();
-  const [activeItem, setActiveItem] = useState<string>("Home");
+  const pathname = usePathname();
   const [selectedCity, setSelectedCity] = useState<string>("Mumbai");
   const [isGpsLocation, setIsGpsLocation] = useState<boolean>(false);
   const [isLocating, setIsLocating] = useState<boolean>(false);
@@ -136,46 +137,15 @@ export default function Navbar() {
     detectUserLocation(false);
   }, [detectUserLocation]);
 
-  // Handle scroll effect for header elevation & active section scroll-spy
+  // Handle scroll effect for header elevation
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 15);
     };
     window.addEventListener("scroll", handleScroll);
 
-    const sectionIds = [
-      "home",
-      "categories",
-      "packages",
-      "how-it-works",
-      "become-a-host",
-      "help",
-    ];
-    const sectionElements = sectionIds
-      .map((id) => document.getElementById(id))
-      .filter((el): el is HTMLElement => el !== null);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const matchingItem = NAV_ITEMS.find(
-              (item) => item.href === `#${entry.target.id}`
-            );
-            if (matchingItem) {
-              setActiveItem(matchingItem.name);
-            }
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
-
-    sectionElements.forEach((el) => observer.observe(el));
-
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      sectionElements.forEach((el) => observer.unobserve(el));
     };
   }, []);
 
@@ -205,7 +175,6 @@ export default function Navbar() {
           {/* Left: Brand Logo + PlusOnne Text */}
           <Link
             href="/"
-            onClick={() => setActiveItem("Home")}
             className="flex items-center gap-2.5 group focus:outline-none shrink-0"
           >
             <div className="relative flex items-center transition-transform duration-200 group-hover:scale-[1.04]">
@@ -226,12 +195,14 @@ export default function Navbar() {
           {/* Center: Desktop Navigation Links */}
           <div className="hidden lg:flex items-center gap-6 xl:gap-8">
             {NAV_ITEMS.map((item) => {
-              const isActive = activeItem === item.name;
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.href);
               return (
-                <a
+                <Link
                   key={item.name}
                   href={item.href}
-                  onClick={() => setActiveItem(item.name)}
                   className={`relative py-1.5 text-sm font-medium transition-colors duration-200 ${isActive
                     ? "text-white font-semibold"
                     : "text-zinc-400 hover:text-zinc-200"
@@ -241,7 +212,7 @@ export default function Navbar() {
                   {isActive && (
                     <span className="absolute left-0 bottom-0 w-full h-[2.5px] bg-gradient-to-r from-[#FF6A3D] to-[#9B51E0] rounded-full shadow-md shadow-rose-500/40 transition-all duration-300" />
                   )}
-                </a>
+                </Link>
               );
             })}
           </div>
@@ -368,13 +339,15 @@ export default function Navbar() {
           <div className="lg:hidden mt-4 pt-4 border-t border-white/10 animate-in slide-in-from-top-2 duration-200">
             <div className="flex flex-col gap-1.5 pb-4">
               {NAV_ITEMS.map((item) => {
-                const isActive = activeItem === item.name;
+                const isActive =
+                  item.href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(item.href);
                 return (
-                  <a
+                  <Link
                     key={item.name}
                     href={item.href}
                     onClick={() => {
-                      setActiveItem(item.name);
                       setIsMobileMenuOpen(false);
                     }}
                     className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive
@@ -386,7 +359,7 @@ export default function Navbar() {
                     {isActive && (
                       <span className="w-2 h-2 rounded-full bg-orange-400" />
                     )}
-                  </a>
+                  </Link>
                 );
               })}
 

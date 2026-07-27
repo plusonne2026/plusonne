@@ -48,24 +48,24 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <a href="#categories" className="hover:text-white transition-colors">
+                <Link href="/categories" className="hover:text-white transition-colors">
                   Categories
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#packages" className="hover:text-white transition-colors">
+                <Link href="/packages" className="hover:text-white transition-colors">
                   Packages & Pricing
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#how-it-works" className="hover:text-white transition-colors">
+                <Link href="/how-it-works" className="hover:text-white transition-colors">
                   How It Works
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#become-a-host" className="hover:text-white transition-colors">
+                <Link href="/become-a-host" className="hover:text-white transition-colors">
                   Become a Host
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -77,29 +77,29 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <a href="#categories" className="hover:text-white transition-colors">
+                <Link href="/categories" className="hover:text-white transition-colors">
                   Coffee & Chats
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#categories" className="hover:text-white transition-colors">
+                <Link href="/categories" className="hover:text-white transition-colors">
                   City Explorer
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#categories" className="hover:text-white transition-colors">
+                <Link href="/categories" className="hover:text-white transition-colors">
                   Event +1 Companion
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#categories" className="hover:text-white transition-colors">
+                <Link href="/categories" className="hover:text-white transition-colors">
                   Sports & Gym Buddy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#categories" className="hover:text-white transition-colors">
+                <Link href="/categories" className="hover:text-white transition-colors">
                   Senior Care Companion
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -111,24 +111,24 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <a href="#help" className="hover:text-white transition-colors">
+                <Link href="/help" className="hover:text-white transition-colors">
                   Safety Protocols
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#help" className="hover:text-white transition-colors">
+                <Link href="/help" className="hover:text-white transition-colors">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#help" className="hover:text-white transition-colors">
+                <Link href="/help" className="hover:text-white transition-colors">
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/host/apply" className="hover:text-white transition-colors">
+                <Link href="/become-a-host" className="hover:text-white transition-colors">
                   Host Terms & 70/30 Split
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

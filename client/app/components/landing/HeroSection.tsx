@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   RiVerifiedBadgeFill,
   RiStarFill,
@@ -44,26 +45,26 @@ export default function HeroSection() {
 
         {/* Action CTAs */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <a
-            href="#packages"
+          <Link
+            href="/packages"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-[#FF6A3D] via-[#FF4E6E] to-[#9B51E0] shadow-xl shadow-rose-500/25 hover:opacity-95 transition-all hover:scale-105"
           >
             <span>Explore Packages & Pricing</span>
             <RiArrowRightLine className="w-4 h-4" />
-          </a>
-          <a
-            href="#how-it-works"
+          </Link>
+          <Link
+            href="/how-it-works"
             className="px-8 py-4 rounded-full text-sm font-semibold text-zinc-200 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 transition-all hover:scale-105"
           >
             How It Works
-          </a>
-          <a
-            href="/host/apply"
+          </Link>
+          <Link
+            href="/become-a-host"
             className="px-6 py-4 rounded-full text-sm font-semibold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition-all flex items-center gap-1.5"
           >
             <RiMagicFill className="w-4 h-4 text-amber-400" />
             <span>Become a Host (Earn ₹30k/mo)</span>
-          </a>
+          </Link>
         </div>
 
         {/* Live Trust Metrics Strip */}

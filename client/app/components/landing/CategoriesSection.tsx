@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   RiCupFill,
   RiCompass4Fill,
@@ -246,13 +247,13 @@ export default function CategoriesSection() {
                         </div>
                       </div>
 
-                      <a
-                        href="#packages"
+                      <Link
+                        href="/packages"
                         className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-all group-hover:border-blue-400/40"
                       >
                         <span>Book Now</span>
                         <RiArrowRightLine className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </CarouselItem>
