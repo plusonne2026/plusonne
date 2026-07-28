@@ -62,8 +62,16 @@ export const sidebarData: SidebarData = {
           url: "/admin/users",
           icon: Users,
         },
-        
-        
+        {
+          title: "Subscription Plans",
+          url: "/admin/plans",
+          icon: Database,
+        },
+        {
+          title: "Global Settings",
+          url: "/admin/settings",
+          icon: Settings2,
+        },
       ],
     },
   ],

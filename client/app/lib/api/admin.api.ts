@@ -105,4 +105,36 @@ export const AdminAPI = {
     });
     return res.data;
   },
+
+  // ================= PLANS ================= //
+
+  getPlans: async (includeInactive = true): Promise<any> => {
+    return apiClient.get<{ success: boolean; data: any[] }>(`/admin/plans?includeInactive=${includeInactive}`);
+  },
+
+  createPlan: async (planData: any): Promise<any> => {
+    return apiClient.post<{ success: boolean; data: any }>("/admin/plans", planData);
+  },
+
+  updatePlanStatus: async (planId: string, isActive: boolean): Promise<any> => {
+    return apiClient.put<{ success: boolean; data: any }>(`/admin/plans/${planId}/status`, { isActive });
+  },
+
+  // ================= UNITS & SETTINGS ================= //
+
+  getUnitPrices: async (): Promise<any> => {
+    return apiClient.get<{ success: boolean; data: any }>("/admin/settings/units");
+  },
+
+  updateUnitPrices: async (hourPrice: number, kmPrice: number): Promise<any> => {
+    return apiClient.put<{ success: boolean; data: any }>("/admin/settings/units", { hourPrice, kmPrice });
+  },
+
+  getUserBalance: async (userId: string): Promise<any> => {
+    return apiClient.get<{ success: boolean; data: any }>(`/admin/users/${userId}/balance`);
+  },
+
+  creditUserUnits: async (userId: string, hoursAmount: number, kmAmount: number): Promise<any> => {
+    return apiClient.post<{ success: boolean; data: any }>(`/admin/users/${userId}/credit-units`, { hoursAmount, kmAmount });
+  },
 };

@@ -90,9 +90,75 @@ async function createHostsTable() {
   }
 }
 
+async function createPlansTable() {
+  const tableName = config.tables.pricingPlans;
+  try {
+    const existing = await dynamoDbClient.send(new ListTablesCommand({}));
+    if (existing.TableNames?.includes(tableName)) {
+      console.log(`✅ Table "${tableName}" already exists.`);
+      return;
+    }
+    const params = {
+      TableName: tableName,
+      KeySchema: [{ AttributeName: "planId", KeyType: "HASH" }],
+      AttributeDefinitions: [{ AttributeName: "planId", AttributeType: "S" }],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDbClient.send(new CreateTableCommand(params));
+    console.log(`🎉 Successfully created table "${tableName}"!`);
+  } catch (err) {
+    console.error(`❌ Failed to create table ${tableName}:`, err);
+  }
+}
+
+async function createUnitBalancesTable() {
+  const tableName = config.tables.unitBalances;
+  try {
+    const existing = await dynamoDbClient.send(new ListTablesCommand({}));
+    if (existing.TableNames?.includes(tableName)) {
+      console.log(`✅ Table "${tableName}" already exists.`);
+      return;
+    }
+    const params = {
+      TableName: tableName,
+      KeySchema: [{ AttributeName: "userId", KeyType: "HASH" }],
+      AttributeDefinitions: [{ AttributeName: "userId", AttributeType: "S" }],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDbClient.send(new CreateTableCommand(params));
+    console.log(`🎉 Successfully created table "${tableName}"!`);
+  } catch (err) {
+    console.error(`❌ Failed to create table ${tableName}:`, err);
+  }
+}
+
+async function createSettingsTable() {
+  const tableName = config.tables.settings;
+  try {
+    const existing = await dynamoDbClient.send(new ListTablesCommand({}));
+    if (existing.TableNames?.includes(tableName)) {
+      console.log(`✅ Table "${tableName}" already exists.`);
+      return;
+    }
+    const params = {
+      TableName: tableName,
+      KeySchema: [{ AttributeName: "settingId", KeyType: "HASH" }],
+      AttributeDefinitions: [{ AttributeName: "settingId", AttributeType: "S" }],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDbClient.send(new CreateTableCommand(params));
+    console.log(`🎉 Successfully created table "${tableName}"!`);
+  } catch (err) {
+    console.error(`❌ Failed to create table ${tableName}:`, err);
+  }
+}
+
 async function main() {
   await createUsersTable();
   await createHostsTable();
+  await createPlansTable();
+  await createUnitBalancesTable();
+  await createSettingsTable();
 }
 
 main();

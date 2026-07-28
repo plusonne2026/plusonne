@@ -1,5 +1,7 @@
 const express = require("express");
 const AdminController = require("../controllers/admin.controller");
+const AdminPlanController = require("../controllers/admin.plan.controller");
+const AdminUnitController = require("../controllers/admin.unit.controller");
 const { authenticate } = require("../middleware/auth.middleware");
 const { requireRole } = require("../middleware/role.middleware");
 const { ROLES } = require("../config/constants");
@@ -44,5 +46,45 @@ router.put("/users/:userId/role", AdminController.updateRole);
  * @desc    Approve or reject host KYC verification
  */
 router.put("/hosts/:hostId/kyc-status", AdminController.updateHostKyc);
+
+// ================= PLANS ================= //
+
+/**
+ * @route   POST /api/v1/admin/plans
+ */
+router.post("/plans", AdminPlanController.createPlan);
+
+/**
+ * @route   GET /api/v1/admin/plans
+ */
+router.get("/plans", AdminPlanController.getPlans);
+
+/**
+ * @route   PUT /api/v1/admin/plans/:planId/status
+ */
+router.put("/plans/:planId/status", AdminPlanController.updatePlanStatus);
+
+
+// ================= UNITS & SETTINGS ================= //
+
+/**
+ * @route   GET /api/v1/admin/settings/units
+ */
+router.get("/settings/units", AdminUnitController.getUnitPrices);
+
+/**
+ * @route   PUT /api/v1/admin/settings/units
+ */
+router.put("/settings/units", AdminUnitController.updateUnitPrices);
+
+/**
+ * @route   GET /api/v1/admin/users/:userId/balance
+ */
+router.get("/users/:userId/balance", AdminUnitController.getUserBalance);
+
+/**
+ * @route   POST /api/v1/admin/users/:userId/credit-units
+ */
+router.post("/users/:userId/credit-units", AdminUnitController.creditUserUnits);
 
 module.exports = router;

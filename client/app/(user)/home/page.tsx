@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "../../lib/context/AuthContext";
 import { HostAPI, HostProfile } from "../../lib/api/host.api";
+import { PricingAPI } from "../../lib/api/pricing.api";
 import {
   LogOut,
   MapPin,
@@ -21,8 +22,17 @@ import {
   ChevronRight,
   Navigation,
   ShieldCheck,
+  X,
+  CreditCard,
 } from "lucide-react";
 import categoryData from "../../lib/data/categories.json";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 // Map JSON icon strings to actual Lucide components
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -95,6 +105,11 @@ export default function UserHomePage() {
   
   const [activeHosts, setActiveHosts] = useState<HostProfile[]>([]);
   const [isLoadingHosts, setIsLoadingHosts] = useState(true);
+  
+  // Pricing Modal State
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [canSkipPricing, setCanSkipPricing] = useState(true);
+  const [userBalance, setUserBalance] = useState<any>(null);
 
   useEffect(() => {
     const fetchHosts = async () => {
@@ -107,8 +122,28 @@ export default function UserHomePage() {
         setIsLoadingHosts(false);
       }
     };
+
+    const checkServicePlan = async () => {
+      if (!user) return;
+      try {
+        const res = await PricingAPI.getMyBalance();
+        const balance = res.data;
+        setUserBalance(balance);
+        if (!balance || (balance.hoursBalance === 0 && balance.kmBalance === 0)) {
+          // Show popup instead of redirecting
+          setCanSkipPricing(true);
+          setShowPricingModal(true);
+        }
+      } catch (err) {
+        console.error("Failed to check wallet:", err);
+      }
+    };
+
+    if (user) {
+      checkServicePlan();
+    }
     fetchHosts();
-  }, []);
+  }, [user, router]);
 
   const handleLogout = async () => {
     try {
@@ -116,6 +151,16 @@ export default function UserHomePage() {
       router.push("/auth/login");
     } catch (err) {
       console.error("Logout failed:", err);
+    }
+  };
+
+  const handleBookNow = (pkgId: string) => {
+    if (!userBalance || (userBalance.hoursBalance === 0 && userBalance.kmBalance === 0)) {
+      setCanSkipPricing(false);
+      // Instead of showing the modal on home page, send them to pricing with pkgId
+      router.push(`/pricing?pkgId=${pkgId}`);
+    } else {
+      router.push(`/packages/${pkgId}`);
     }
   };
 
@@ -198,7 +243,7 @@ export default function UserHomePage() {
             {/* Desktop Nav Links */}
             <div className="hidden md:flex items-center gap-2 border-l border-white/10 pl-4">
               <button onClick={() => router.push("/bookings")} className="text-sm font-medium text-slate-300 hover:text-white px-3 py-2 rounded-lg transition-colors">Bookings</button>
-              <button onClick={() => router.push("/wallet")} className="text-sm font-medium text-slate-300 hover:text-white px-3 py-2 rounded-lg transition-colors">Wallet</button>
+              <button onClick={() => router.push("/pricing")} className="text-sm font-medium text-amber-400 hover:text-amber-300 px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5"><Wallet className="w-4 h-4"/> Upgrade / Wallet</button>
               <button onClick={handleLogout} className="w-9 h-9 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-500/10 transition-colors">
                 <LogOut className="w-4 h-4" />
               </button>
@@ -425,7 +470,13 @@ export default function UserHomePage() {
                         {pkg.price}
                       </span>
                     </div>
-                    <button className="bg-white/10 hover:bg-white/20 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBookNow(pkg.id);
+                      }}
+                      className="bg-white/10 hover:bg-white/20 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors"
+                    >
                       Book
                     </button>
                   </div>
@@ -447,7 +498,7 @@ export default function UserHomePage() {
           <Calendar className="w-5 h-5" />
           <span className="text-[9px] font-bold">Bookings</span>
         </button>
-        <button onClick={() => router.push("/wallet")} className="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-colors">
+        <button onClick={() => router.push("/pricing")} className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-400 transition-colors">
           <Wallet className="w-5 h-5" />
           <span className="text-[9px] font-bold">Wallet</span>
         </button>
@@ -456,6 +507,64 @@ export default function UserHomePage() {
           <span className="text-[9px] font-bold">Logout</span>
         </button>
       </nav>
+
+      {/* Pricing Promo / Requirement Modal */}
+      <Dialog open={showPricingModal} onOpenChange={(open) => {
+        if (!open && !canSkipPricing) return; // Prevent closing if they cannot skip
+        setShowPricingModal(open);
+      }}>
+        <DialogContent className="bg-[#07090E] border-white/10 text-white sm:max-w-[500px] p-0 overflow-hidden rounded-[32px] shadow-[0_0_50px_rgba(12,76,217,0.3)]">
+          {canSkipPricing && (
+            <button 
+              onClick={() => setShowPricingModal(false)}
+              className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0C4CD9]/30 to-[#9B51E0]/30" />
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542204165-65bf26472b9b?w=800&auto=format&fit=crop&q=80')] bg-cover bg-center mix-blend-overlay opacity-30" />
+            
+            <div className="relative p-8 pt-12 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0C4CD9] to-[#1C7AFF] flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(12,76,217,0.6)]">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              
+              <h3 className="text-2xl sm:text-3xl font-black text-white mb-3 tracking-tight">
+                {canSkipPricing ? "Elevate Your Experience" : "Service Model Required"}
+              </h3>
+              
+              <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-sm mx-auto mb-8">
+                {canSkipPricing 
+                  ? "Unlock unlimited access with a subscription or add units to your wallet for pay-per-use bookings." 
+                  : "To book this package, you need to select a subscription plan or add units to your pay-per-use wallet."}
+              </p>
+
+              <div className="w-full space-y-3">
+                <Button 
+                  onClick={() => router.push("/pricing")}
+                  className="w-full bg-white hover:bg-slate-200 text-black font-black py-6 rounded-2xl text-base shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                >
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  {canSkipPricing ? "View Pricing & Plans" : "Choose Model to Book"}
+                </Button>
+                
+                {canSkipPricing && (
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setShowPricingModal(false)}
+                    className="w-full text-slate-400 hover:text-white hover:bg-white/5 font-bold py-6 rounded-2xl"
+                  >
+                    Skip for now
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

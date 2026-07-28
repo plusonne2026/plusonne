@@ -5,6 +5,8 @@ const authRoutes = require("./auth.routes");
 const hostRoutes = require("./host.routes");
 const mediaRoutes = require("./media.routes");
 const adminRoutes = require("./admin.routes");
+const planRoutes = require("./plan.routes");
+const unitRoutes = require("./unit.routes");
 
 const router = express.Router();
 
@@ -53,5 +55,7 @@ router.use("/auth", authRoutes);
 router.use("/hosts", hostRoutes);
 router.use("/media", mediaRoutes);
 router.use("/admin", adminRoutes);
+router.use("/plans", planRoutes);
+router.use("/units", unitRoutes);
 
 module.exports = router;

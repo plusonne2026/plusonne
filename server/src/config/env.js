@@ -13,6 +13,9 @@ const config = {
   tables: {
     users: process.env.DYNAMODB_TABLE_USERS || "PlusOne_Users",
     hosts: process.env.DYNAMODB_TABLE_HOSTS || "PlusOne_HostProfiles",
+    pricingPlans: process.env.DYNAMODB_TABLE_PLANS || "PlusOne_PricingPlans",
+    unitBalances: process.env.DYNAMODB_TABLE_UNIT_BALANCES || "PlusOne_UnitBalances",
+    settings: process.env.DYNAMODB_TABLE_SETTINGS || "PlusOne_Settings",
   },
   jwtSecret: process.env.JWT_SECRET || "plusone_default_secret",
   cloudinary: {

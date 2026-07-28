@@ -16,6 +16,8 @@ import {
   Filter,
   ArrowUpDown,
   Sparkles,
+  Wallet,
+  CreditCard,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +40,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function AdminUsersDirectoryPage() {
@@ -47,6 +56,14 @@ export default function AdminUsersDirectoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
+  // Wallet State
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [walletUser, setWalletUser] = useState<User | null>(null);
+  const [walletBalance, setWalletBalance] = useState<any>(null);
+  const [creditHours, setCreditHours] = useState(0);
+  const [creditKm, setCreditKm] = useState(0);
+  const [walletLoading, setWalletLoading] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -90,6 +107,37 @@ export default function AdminUsersDirectoryPage() {
       alert(`Failed to update role: ${err.message || "Unknown error"}`);
     } finally {
       setActionLoadingId(null);
+    }
+  };
+
+  const handleOpenWallet = async (user: User) => {
+    setWalletUser(user);
+    setIsWalletModalOpen(true);
+    setWalletLoading(true);
+    try {
+      const res = await AdminAPI.getUserBalance(user.userId);
+      setWalletBalance(res.data);
+    } catch (err) {
+      setWalletBalance(null);
+    } finally {
+      setWalletLoading(false);
+    }
+  };
+
+  const handleCreditUnits = async () => {
+    if (!walletUser) return;
+    try {
+      setWalletLoading(true);
+      await AdminAPI.creditUserUnits(walletUser.userId, creditHours, creditKm);
+      const res = await AdminAPI.getUserBalance(walletUser.userId);
+      setWalletBalance(res.data);
+      setCreditHours(0);
+      setCreditKm(0);
+      alert("Units credited successfully!");
+    } catch (err: any) {
+      alert("Failed to credit units: " + err.message);
+    } finally {
+      setWalletLoading(false);
     }
   };
 
@@ -297,6 +345,13 @@ export default function AdminUsersDirectoryPage() {
                           <DropdownMenuLabel className="text-[10px] font-extrabold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                             Account Moderation
                           </DropdownMenuLabel>
+                          <DropdownMenuItem
+                            onClick={() => handleOpenWallet(u)}
+                            className="rounded-md px-3 py-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer"
+                          >
+                            <Wallet className="w-3.5 h-3.5 mr-2" />
+                            Manage Wallet Units
+                          </DropdownMenuItem>
                           {u.status === "suspended" ? (
                             <DropdownMenuItem
                               onClick={() => handleStatusChange(u.userId, "active")}
@@ -322,6 +377,49 @@ export default function AdminUsersDirectoryPage() {
           </div>
         )}
       </Card>
+
+      {/* Wallet Modal */}
+      <Dialog open={isWalletModalOpen} onOpenChange={setIsWalletModalOpen}>
+        <DialogContent className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>User Wallet & Units</DialogTitle>
+          </DialogHeader>
+          {walletLoading && !walletBalance ? (
+            <div className="flex justify-center p-6"><Loader2 className="animate-spin" /></div>
+          ) : (
+            <div className="grid gap-4 py-4">
+              <div className="p-4 bg-zinc-100 dark:bg-zinc-900 rounded-md grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase font-bold">Hours Balance</p>
+                  <p className="text-2xl font-black text-blue-600">{walletBalance?.hoursBalance || 0}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase font-bold">KM Balance</p>
+                  <p className="text-2xl font-black text-emerald-600">{walletBalance?.kmBalance || 0}</p>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Credit Hours Manually</Label>
+                <Input type="number" value={creditHours} onChange={(e) => setCreditHours(Number(e.target.value))} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Credit KMs Manually</Label>
+                <Input type="number" value={creditKm} onChange={(e) => setCreditKm(Number(e.target.value))} />
+              </div>
+              
+              <Button 
+                onClick={handleCreditUnits} 
+                disabled={walletLoading || (creditHours === 0 && creditKm === 0)}
+                className="w-full mt-2"
+              >
+                {walletLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Credit Units to Wallet
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
