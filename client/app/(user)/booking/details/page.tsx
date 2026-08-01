@@ -30,11 +30,32 @@ function BookingDetailsContent() {
     setDetecting(true);
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude.toFixed(4);
-          const lng = position.coords.longitude.toFixed(4);
-          setLocation(`Current GPS Location (${lat}, ${lng})`);
-          setDetecting(false);
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+              {
+                headers: {
+                  "Accept-Language": "en"
+                }
+              }
+            );
+            const data = await response.json();
+            
+            if (data && data.display_name) {
+              setLocation(data.display_name);
+            } else {
+              setLocation(`Current GPS Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+            }
+          } catch (error) {
+            console.error("Error fetching address:", error);
+            setLocation(`Current GPS Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+          } finally {
+            setDetecting(false);
+          }
         },
         (error) => {
           alert("Failed to get location. Please type it manually.");
