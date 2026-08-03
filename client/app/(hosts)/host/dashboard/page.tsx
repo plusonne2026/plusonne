@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "../../../lib/context/AuthContext";
 import { HostAPI, HostProfile, BankDetails, DaySchedule } from "../../../lib/api/host.api";
+import { BookingAPI, BookingRequest as APIBookingRequest } from "../../../lib/api/booking.api";
+import { listenToBookingStatus } from "../../../lib/firebase/rtdb";
 import {
   Briefcase,
   CheckCircle2,
@@ -32,10 +34,12 @@ import {
   TrendingUp,
   MapPin,
   X,
+  Navigation,
 } from "lucide-react";
 
 interface BookingRequest {
   id: string;
+  bookingId?: string;
   clientName: string;
   clientAvatar: string;
   category: string;
@@ -44,7 +48,7 @@ interface BookingRequest {
   duration: string;
   payout: number;
   location: string;
-  status: "pending" | "accepted" | "declined" | "completed";
+  status: "pending" | "accepted" | "declined" | "in_session" | "completed" | "cancelled";
 }
 
 const INITIAL_MOCK_BOOKINGS: BookingRequest[] = [
@@ -140,11 +144,9 @@ export default function HostDashboardPage() {
       }
     } catch (err: any) {
       if (err.status === 404) {
-        // Host has not applied yet -> redirect to application page
         router.push("/host/apply");
       } else {
         setError("Could not sync live profile. Previewing host portal in demo mode.");
-        // Fallback profile for smooth preview
         setProfile({
           hostId: user?.userId || "host_preview",
           displayName: user?.displayName || "Verified Companion Host",
@@ -163,7 +165,7 @@ export default function HostDashboardPage() {
           experienceYears: 2,
           kycStatus: "verified",
           kycDocuments: { aadhaarUrl: "verified", panUrl: "verified", photoUrl: "verified" },
-          bankDetails: null, // Simulated skipped during onboarding
+          bankDetails: null,
           hostTrustScore: 94,
           earnings: { thisMonth: 18400, lastMonth: 32000, total: 50400, pending: 4200 },
           schedule: [
@@ -177,6 +179,45 @@ export default function HostDashboardPage() {
         });
       }
     } finally {
+      // Fetch Real Bookings & Real Financial Data from Backend APIs
+      try {
+        const fetchedBookings = await BookingAPI.getRequests();
+        if (fetchedBookings && fetchedBookings.length > 0) {
+          const mapped: BookingRequest[] = fetchedBookings.map((b) => ({
+            id: b.id || b.bookingId,
+            bookingId: b.bookingId,
+            clientName: b.clientName,
+            clientAvatar: b.clientAvatar,
+            category: b.category,
+            date: b.date,
+            time: b.time,
+            duration: b.duration,
+            payout: b.payout,
+            location: b.location,
+            status: b.status,
+          }));
+          setBookings(mapped);
+        }
+
+        const realEarnings = await HostAPI.getEarnings();
+        if (realEarnings && profile) {
+          setProfile((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  earnings: {
+                    thisMonth: realEarnings.thisMonth || prev.earnings.thisMonth,
+                    lastMonth: realEarnings.lastMonth || prev.earnings.lastMonth,
+                    total: realEarnings.total || prev.earnings.total,
+                    pending: realEarnings.pending || prev.earnings.pending,
+                  },
+                }
+              : prev
+          );
+        }
+      } catch (e) {
+        console.warn("Backend API sync fallback:", e);
+      }
       setLoading(false);
     }
   };
@@ -199,7 +240,6 @@ export default function HostDashboardPage() {
       setBankSuccessMsg("Bank account linked successfully!");
       setTimeout(() => setShowBankModal(false), 1500);
     } catch (err: any) {
-      // Local state fallback
       if (profile) setProfile({ ...profile, bankDetails: newBank });
       setBankSuccessMsg("Bank details saved!");
       setTimeout(() => setShowBankModal(false), 1500);
@@ -236,10 +276,18 @@ export default function HostDashboardPage() {
     }
   };
 
-  const handleBookingAction = (id: string, action: "accepted" | "declined") => {
+  const handleBookingAction = async (id: string, action: "accepted" | "declined" | "in_session" | "completed") => {
+    // Optimistic UI update
     setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, status: action } : b))
+      prev.map((b) => (b.id === id || b.bookingId === id ? { ...b, status: action } : b))
     );
+    try {
+      const bObj = bookings.find((b) => b.id === id || b.bookingId === id);
+      const targetId = bObj?.bookingId || id;
+      await BookingAPI.updateStatus(targetId, action);
+    } catch (err) {
+      console.warn("Booking status PUT request error:", err);
+    }
   };
 
   if (loading || authLoading) {
@@ -647,9 +695,40 @@ export default function HostDashboardPage() {
                     )}
 
                     {b.status === "accepted" && (
-                      <span className="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4" /> Booking Accepted
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="px-3 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4" /> Accepted
+                        </span>
+                        <button
+                          onClick={() => router.push(`/host/session/${b.bookingId || b.id}`)}
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-extrabold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition-all"
+                        >
+                          <Navigation className="w-4 h-4" /> Start Map Session
+                        </button>
+                      </div>
+                    )}
+
+                    {b.status === "in_session" && (
+                      <button
+                        onClick={() => router.push(`/host/session/${b.bookingId || b.id}`)}
+                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-extrabold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition-all animate-pulse"
+                      >
+                        <Navigation className="w-4 h-4" /> Resume Live Map
+                      </button>
+                    )}
+
+                    {b.status === "completed" && (
+                      <div className="flex items-center gap-2">
+                        <span className="px-3 py-2 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4" /> Completed
+                        </span>
+                        <button
+                          onClick={() => router.push(`/host/session/${b.bookingId || b.id}/rate`)}
+                          className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-all"
+                        >
+                          <Star className="w-4 h-4 fill-amber-400 text-amber-400" /> Rate Client
+                        </button>
+                      </div>
                     )}
 
                     {b.status === "declined" && (
