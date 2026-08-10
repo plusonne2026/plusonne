@@ -72,6 +72,16 @@ export const sidebarData: SidebarData = {
           url: "/admin/settings",
           icon: Settings2,
         },
+        {
+          title: "Service Categories",
+          url: "/admin/categories",
+          icon: ExternalLink,
+        },
+        {
+          title: "Packages",
+          url: "/admin/packages",
+          icon: Database,
+        },
       ],
     },
   ],

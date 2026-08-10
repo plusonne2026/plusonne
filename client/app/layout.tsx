@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "./lib/context/AuthContext";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
+import Script from "next/script";
 
 const raleway = Raleway({subsets:['latin'],variable:'--font-sans'});
 
@@ -43,8 +44,8 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       </body>
     </html>
   );
 }
-

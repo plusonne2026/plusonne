@@ -7,6 +7,10 @@ const mediaRoutes = require("./media.routes");
 const adminRoutes = require("./admin.routes");
 const planRoutes = require("./plan.routes");
 const unitRoutes = require("./unit.routes");
+const categoryRoutes = require("./category.routes");
+const packageRoutes = require("./package.routes");
+const bookingRoutes = require("./booking.routes");
+const paymentRoutes = require("./payment.routes");
 
 const router = express.Router();
 
@@ -57,5 +61,9 @@ router.use("/media", mediaRoutes);
 router.use("/admin", adminRoutes);
 router.use("/plans", planRoutes);
 router.use("/units", unitRoutes);
+router.use("/categories", categoryRoutes);
+router.use("/packages", packageRoutes);
+router.use("/bookings", bookingRoutes);
+router.use("/payments", paymentRoutes);
 
 module.exports = router;

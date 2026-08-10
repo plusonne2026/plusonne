@@ -57,12 +57,25 @@ function PricingContent() {
     }
   };
 
+  const [processing, setProcessing] = useState(false);
+
   const handleSubscribe = async (planId: string) => {
     if (!user) {
       router.push("/auth/login");
       return;
     }
-    router.push(`/booking/details?planId=${planId}&type=subscription`);
+    setProcessing(true);
+    try {
+      // Mock Razorpay payment flow here, directly credit units for now
+      // A Monthly Pro gives 100 Hours and 1000 KMs
+      await PricingAPI.purchaseUnits(100, 1000, 3000);
+      alert("Successfully Subscribed to Monthly Pro! Your wallet has been credited.");
+      fetchData(); // Refresh balance
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleBuyUnits = async () => {
@@ -71,8 +84,20 @@ function PricingContent() {
       return;
     }
     if (buyHours === 0 && buyKms === 0) return;
-    const totalAmount = (buyHours * unitPrices.hourPrice) + (buyKms * unitPrices.kmPrice);
-    router.push(`/booking/payment?type=wallet&hours=${buyHours}&kms=${buyKms}&totalAmount=${totalAmount}`);
+    
+    setProcessing(true);
+    try {
+      const totalAmount = (buyHours * unitPrices.hourPrice) + (buyKms * unitPrices.kmPrice);
+      await PricingAPI.purchaseUnits(buyHours, buyKms, totalAmount);
+      alert(`Successfully added units to your wallet!`);
+      setBuyHours(0);
+      setBuyKms(0);
+      fetchData(); // Refresh balance
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleDirectBooking = async () => {
@@ -208,9 +233,10 @@ function PricingContent() {
 
                     <button 
                       onClick={() => handleSubscribe(plan.planId)}
-                      className={`w-full py-4 rounded-xl font-bold transition-colors ${isPremium ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                      disabled={processing}
+                      className={`w-full py-4 rounded-xl font-bold flex items-center justify-center transition-colors ${isPremium ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 text-white hover:bg-white/20'} disabled:opacity-50`}
                     >
-                      Subscribe Now
+                      {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Subscribe Now"}
                     </button>
                   </div>
                 );
@@ -278,10 +304,10 @@ function PricingContent() {
 
                 <button 
                   onClick={handleBuyUnits}
-                  disabled={totalBuyPrice === 0}
-                  className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-bold py-4 transition-colors disabled:opacity-50 disabled:hover:bg-emerald-500"
+                  disabled={totalBuyPrice === 0 || processing}
+                  className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-bold py-4 transition-colors flex items-center justify-center disabled:opacity-50 disabled:hover:bg-emerald-500"
                 >
-                  Pay to Top-up
+                  {processing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Pay to Top-up"}
                 </button>
               </div>
 

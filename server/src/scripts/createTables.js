@@ -153,12 +153,152 @@ async function createSettingsTable() {
   }
 }
 
+async function createCategoriesTable() {
+  const tableName = config.tables.categories;
+  try {
+    const existing = await dynamoDbClient.send(new ListTablesCommand({}));
+    if (existing.TableNames?.includes(tableName)) {
+      console.log(`✅ Table "${tableName}" already exists.`);
+      return;
+    }
+    const params = {
+      TableName: tableName,
+      KeySchema: [{ AttributeName: "categoryId", KeyType: "HASH" }],
+      AttributeDefinitions: [{ AttributeName: "categoryId", AttributeType: "S" }],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDbClient.send(new CreateTableCommand(params));
+    console.log(`🎉 Successfully created table "${tableName}"!`);
+  } catch (err) {
+    console.error(`❌ Failed to create table ${tableName}:`, err);
+  }
+}
+
+async function createPackagesTable() {
+  const tableName = config.tables.packages;
+  try {
+    const existing = await dynamoDbClient.send(new ListTablesCommand({}));
+    if (existing.TableNames?.includes(tableName)) {
+      console.log(`✅ Table "${tableName}" already exists.`);
+      return;
+    }
+    const params = {
+      TableName: tableName,
+      KeySchema: [{ AttributeName: "packageId", KeyType: "HASH" }],
+      AttributeDefinitions: [
+        { AttributeName: "packageId", AttributeType: "S" },
+        { AttributeName: "categoryId", AttributeType: "S" },
+        { AttributeName: "city", AttributeType: "S" }
+      ],
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: "CategoryCityIndex",
+          KeySchema: [
+            { AttributeName: "categoryId", KeyType: "HASH" },
+            { AttributeName: "city", KeyType: "RANGE" }
+          ],
+          Projection: { ProjectionType: "ALL" },
+        }
+      ],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDbClient.send(new CreateTableCommand(params));
+    console.log(`🎉 Successfully created table "${tableName}"!`);
+  } catch (err) {
+    console.error(`❌ Failed to create table ${tableName}:`, err);
+  }
+}
+
+async function createBookingsTable() {
+  const tableName = config.tables.bookings;
+  try {
+    const existing = await dynamoDbClient.send(new ListTablesCommand({}));
+    if (existing.TableNames?.includes(tableName)) {
+      console.log(`✅ Table "${tableName}" already exists.`);
+      return;
+    }
+    const params = {
+      TableName: tableName,
+      KeySchema: [{ AttributeName: "bookingId", KeyType: "HASH" }],
+      AttributeDefinitions: [
+        { AttributeName: "bookingId", AttributeType: "S" },
+        { AttributeName: "userId", AttributeType: "S" },
+        { AttributeName: "hostId", AttributeType: "S" },
+        { AttributeName: "status", AttributeType: "S" },
+      ],
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: "UserBookingsIndex",
+          KeySchema: [{ AttributeName: "userId", KeyType: "HASH" }],
+          Projection: { ProjectionType: "ALL" },
+        },
+        {
+          IndexName: "HostBookingsIndex",
+          KeySchema: [{ AttributeName: "hostId", KeyType: "HASH" }],
+          Projection: { ProjectionType: "ALL" },
+        },
+        {
+          IndexName: "StatusIndex",
+          KeySchema: [{ AttributeName: "status", KeyType: "HASH" }],
+          Projection: { ProjectionType: "ALL" },
+        }
+      ],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDbClient.send(new CreateTableCommand(params));
+    console.log(`🎉 Successfully created table "${tableName}"!`);
+  } catch (err) {
+    console.error(`❌ Failed to create table ${tableName}:`, err);
+  }
+}
+
+async function createPaymentsTable() {
+  const tableName = config.tables.payments;
+  try {
+    const existing = await dynamoDbClient.send(new ListTablesCommand({}));
+    if (existing.TableNames?.includes(tableName)) {
+      console.log(`✅ Table "${tableName}" already exists.`);
+      return;
+    }
+    const params = {
+      TableName: tableName,
+      KeySchema: [{ AttributeName: "paymentId", KeyType: "HASH" }],
+      AttributeDefinitions: [
+        { AttributeName: "paymentId", AttributeType: "S" },
+        { AttributeName: "bookingId", AttributeType: "S" },
+        { AttributeName: "userId", AttributeType: "S" },
+      ],
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: "BookingIndex",
+          KeySchema: [{ AttributeName: "bookingId", KeyType: "HASH" }],
+          Projection: { ProjectionType: "ALL" },
+        },
+        {
+          IndexName: "UserIndex",
+          KeySchema: [{ AttributeName: "userId", KeyType: "HASH" }],
+          Projection: { ProjectionType: "ALL" },
+        }
+      ],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDbClient.send(new CreateTableCommand(params));
+    console.log(`🎉 Successfully created table "${tableName}"!`);
+  } catch (err) {
+    console.error(`❌ Failed to create table ${tableName}:`, err);
+  }
+}
+
 async function main() {
   await createUsersTable();
   await createHostsTable();
   await createPlansTable();
   await createUnitBalancesTable();
   await createSettingsTable();
+  await createCategoriesTable();
+  await createPackagesTable();
+  await createBookingsTable();
+  await createPaymentsTable();
 }
 
 main();

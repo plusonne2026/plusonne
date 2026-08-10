@@ -16,8 +16,17 @@ const config = {
     pricingPlans: process.env.DYNAMODB_TABLE_PLANS || "PlusOne_PricingPlans",
     unitBalances: process.env.DYNAMODB_TABLE_UNIT_BALANCES || "PlusOne_UnitBalances",
     settings: process.env.DYNAMODB_TABLE_SETTINGS || "PlusOne_Settings",
+    categories: process.env.DYNAMODB_TABLE_CATEGORIES || "PlusOne_Categories",
+    packages: process.env.DYNAMODB_TABLE_PACKAGES || "PlusOne_Packages",
+    bookings: process.env.DYNAMODB_TABLE_BOOKINGS || "PlusOne_Bookings",
+    payments: process.env.DYNAMODB_TABLE_PAYMENTS || "PlusOne_Payments",
   },
   jwtSecret: process.env.JWT_SECRET || "plusone_default_secret",
+  razorpay: {
+    keyId: process.env.RAZORPAY_KEY_ID || "rzp_test_dummykey12345",
+    keySecret: process.env.RAZORPAY_KEY_SECRET || "dummysecret_12345",
+    webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || "dummy_webhook_secret",
+  },
   cloudinary: {
     cloudName: process.env.CLOUDINARY_CLOUD_NAME || "demo",
     apiKey: process.env.CLOUDINARY_API_KEY || "",

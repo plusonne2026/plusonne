@@ -25,7 +25,8 @@ import {
   X,
   CreditCard,
 } from "lucide-react";
-import categoryData from "../../lib/data/categories.json";
+import { CategoriesAPI, Category } from "../../lib/api/categories.api";
+import { PackagesAPI, Package } from "../../lib/api/packages.api";
 import {
   Dialog,
   DialogContent,
@@ -42,11 +43,6 @@ const ICON_MAP: Record<string, React.ElementType> = {
   PartyPopper,
 };
 
-const CATEGORIES = categoryData.map((c) => ({
-  ...c,
-  icon: ICON_MAP[c.icon] || Sparkles,
-}));
-
 // Premium styles for category icons
 const CATEGORY_STYLES: Record<string, { textColor: string, shadowColor: string, glowColor: string }> = {
   coffee_date: { textColor: "text-amber-400", shadowColor: "drop-shadow-[0_0_15px_rgba(251,191,36,0.6)]", glowColor: "bg-amber-500/20" },
@@ -55,50 +51,6 @@ const CATEGORY_STYLES: Record<string, { textColor: string, shadowColor: string, 
   events: { textColor: "text-fuchsia-400", shadowColor: "drop-shadow-[0_0_15px_rgba(232,121,249,0.6)]", glowColor: "bg-fuchsia-500/20" },
 };
 
-// Mock popular packages with fixed working image URLs
-const POPULAR_PACKAGES = [
-  {
-    id: "pkg_1",
-    title: "Mumbai Midnight Drive",
-    image: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=600&auto=format&fit=crop&q=80",
-    price: "₹2,000",
-    duration: "3H",
-    rating: 4.9,
-    reviews: 124,
-    category: "City Explorer",
-  },
-  {
-    id: "pkg_2",
-    title: "Colaba Heritage Walk",
-    image: "https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=600&auto=format&fit=crop&q=80",
-    price: "₹1,500",
-    duration: "2H",
-    rating: 4.8,
-    reviews: 89,
-    category: "City Explorer",
-  },
-  {
-    id: "pkg_3",
-    title: "Fine Dining at Taj",
-    image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&auto=format&fit=crop&q=80",
-    price: "₹3,500",
-    duration: "4H",
-    rating: 5.0,
-    reviews: 210,
-    category: "Dinner Companion",
-  },
-  {
-    id: "pkg_4",
-    title: "Sunday Tennis Partner",
-    image: "https://images.unsplash.com/photo-1595435742656-5272d0b3fa82?w=600&auto=format&fit=crop&q=80",
-    price: "₹1,000",
-    duration: "2H",
-    rating: 4.7,
-    reviews: 45,
-    category: "Sports Buddy",
-  },
-];
-
 export default function UserHomePage() {
   const { user, logout, isLoading } = useAuth();
   const router = useRouter();
@@ -106,18 +58,28 @@ export default function UserHomePage() {
   const [activeHosts, setActiveHosts] = useState<HostProfile[]>([]);
   const [isLoadingHosts, setIsLoadingHosts] = useState(true);
   
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [popularPackages, setPopularPackages] = useState<Package[]>([]);
+  
   // Pricing Modal State
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [canSkipPricing, setCanSkipPricing] = useState(true);
   const [userBalance, setUserBalance] = useState<any>(null);
 
   useEffect(() => {
-    const fetchHosts = async () => {
+    const fetchHostsAndData = async () => {
       try {
-        const hosts = await HostAPI.getActiveHosts();
+        const [hosts, cats, pkgs] = await Promise.all([
+          HostAPI.getActiveHosts().catch(() => []),
+          CategoriesAPI.getAll(false).catch(() => []),
+          PackagesAPI.getAll(false).catch(() => []),
+        ]);
         setActiveHosts(hosts);
+        setCategories(cats);
+        // Map popular packages (e.g. taking top 4)
+        setPopularPackages(pkgs.slice(0, 4));
       } catch (err) {
-        console.error("Failed to fetch active hosts:", err);
+        console.error("Failed to fetch data:", err);
       } finally {
         setIsLoadingHosts(false);
       }
@@ -142,7 +104,7 @@ export default function UserHomePage() {
     if (user) {
       checkServicePlan();
     }
-    fetchHosts();
+    fetchHostsAndData();
   }, [user, router]);
 
   const handleLogout = async () => {
@@ -155,13 +117,7 @@ export default function UserHomePage() {
   };
 
   const handleBookNow = (pkgId: string) => {
-    if (!userBalance || (userBalance.hoursBalance === 0 && userBalance.kmBalance === 0)) {
-      setCanSkipPricing(false);
-      // Instead of showing the modal on home page, send them to pricing with pkgId
-      router.push(`/pricing?pkgId=${pkgId}`);
-    } else {
-      router.push(`/packages/${pkgId}`);
-    }
+    router.push(`/packages/${pkgId}`);
   };
 
   if (isLoading) {
@@ -243,7 +199,14 @@ export default function UserHomePage() {
             {/* Desktop Nav Links */}
             <div className="hidden md:flex items-center gap-2 border-l border-white/10 pl-4">
               <button onClick={() => router.push("/bookings")} className="text-sm font-medium text-slate-300 hover:text-white px-3 py-2 rounded-lg transition-colors">Bookings</button>
-              <button onClick={() => router.push("/pricing")} className="text-sm font-medium text-amber-400 hover:text-amber-300 px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5"><Wallet className="w-4 h-4"/> Upgrade / Wallet</button>
+              <button onClick={() => router.push("/pricing")} className="text-sm font-medium text-amber-400 hover:text-amber-300 px-3 py-2 rounded-lg border border-amber-400/20 bg-amber-400/5 transition-colors flex items-center gap-2">
+                <Wallet className="w-4 h-4"/> 
+                {userBalance && (userBalance.hoursBalance > 0 || userBalance.kmBalance > 0) ? (
+                  <span>⚡ {userBalance.hoursBalance} Hrs | {userBalance.kmBalance} KM</span>
+                ) : (
+                  <span>⚡ Recharge Wallet</span>
+                )}
+              </button>
               <button onClick={handleLogout} className="w-9 h-9 flex items-center justify-center rounded-lg text-rose-400 hover:bg-rose-500/10 transition-colors">
                 <LogOut className="w-4 h-4" />
               </button>
@@ -308,30 +271,34 @@ export default function UserHomePage() {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {CATEGORIES.map((cat) => {
-              const style = CATEGORY_STYLES[cat.id] || { textColor: "text-white", shadowColor: "drop-shadow-[0_0_12px_rgba(255,255,255,0.5)]", glowColor: "bg-white/10" };
+            {categories.map((cat) => {
+              const style = CATEGORY_STYLES[cat.categoryId] || { textColor: "text-white", shadowColor: "drop-shadow-[0_0_12px_rgba(255,255,255,0.5)]", glowColor: "bg-white/10" };
+              const Icon = ICON_MAP[cat.iconUrl] || Sparkles;
+              const color = "from-zinc-500 to-zinc-600";
+              const rate = "Starting ₹1000/hr";
+              
               return (
               <div
-                key={cat.id}
-                onClick={() => router.push(`/packages?category=${cat.id}`)}
+                key={cat.categoryId}
+                onClick={() => router.push(`/packages?category=${cat.categoryId}`)}
                 className="group relative overflow-hidden bg-white/[0.02] border border-white/[0.08] hover:border-white/[0.2] rounded-[32px] p-6 cursor-pointer transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] flex flex-col justify-between min-h-[220px]"
               >
                 {/* Background gradient hint */}
-                <div className={`absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-bl ${cat.color} opacity-10 rounded-full blur-2xl group-hover:opacity-30 transition-opacity duration-500 pointer-events-none`} />
+                <div className={`absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-bl ${color} opacity-10 rounded-full blur-2xl group-hover:opacity-30 transition-opacity duration-500 pointer-events-none`} />
                 <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 
                 <div className="relative z-10">
                   {/* Premium Glowing Icon Container */}
-                  <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[24px] bg-gradient-to-br ${cat.color} p-[1px] shadow-xl mb-5 sm:mb-6 group-hover:scale-105 group-hover:-rotate-3 transition-transform duration-500 relative`}>
+                  <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[24px] bg-gradient-to-br ${color} p-[1px] shadow-xl mb-5 sm:mb-6 group-hover:scale-105 group-hover:-rotate-3 transition-transform duration-500 relative`}>
                     {/* Outer glow on hover */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${cat.color} rounded-[24px] blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500`} />
+                    <div className={`absolute inset-0 bg-gradient-to-br ${color} rounded-[24px] blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500`} />
                     
                     <div className="w-full h-full bg-gradient-to-br from-[#0A0E17] to-[#131A2B] rounded-[15px] sm:rounded-[23px] flex items-center justify-center relative overflow-hidden shadow-inner">
                       {/* Inner ambient glow matching the icon color */}
                       <div className={`absolute inset-0 ${style.glowColor} opacity-40 group-hover:opacity-70 blur-md transition-opacity duration-500`} />
                       
                       {/* The crisp, neon-style outline icon */}
-                      <cat.icon 
+                      <Icon 
                         className={`w-8 h-8 sm:w-10 sm:h-10 ${style.textColor} ${style.shadowColor} relative z-10 transition-transform duration-500 group-hover:scale-110`} 
                         strokeWidth={1.5} 
                       />
@@ -339,11 +306,11 @@ export default function UserHomePage() {
                   </div>
                   
                   <h3 className="text-xl font-bold text-white mb-2 tracking-tight group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-slate-400 transition-all">{cat.name}</h3>
-                  <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed font-medium">{cat.desc}</p>
+                  <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed font-medium">{cat.description}</p>
                 </div>
                 
                 <div className="mt-6 flex items-center justify-between border-t border-white/[0.08] pt-4 relative z-10">
-                  <span className="text-xs font-bold text-slate-300 tracking-wide uppercase">{cat.rate}</span>
+                  <span className="text-xs font-bold text-slate-300 tracking-wide uppercase">{rate}</span>
                   <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/20 group-hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all">
                     <ChevronRight className="w-4 h-4 text-white" />
                   </div>
@@ -409,7 +376,7 @@ export default function UserHomePage() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-1.5 mt-auto w-full">
                   {(host.categories || []).slice(0, 2).map(tag => {
-                    const categoryObj = categoryData.find(c => c.id === tag);
+                    const categoryObj = categories.find(c => c.categoryId === tag);
                     return (
                       <span key={tag} className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-semibold text-slate-300">
                         {categoryObj?.name || tag.replace('_', ' ')}
@@ -433,47 +400,49 @@ export default function UserHomePage() {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {POPULAR_PACKAGES.map((pkg) => (
+            {popularPackages.length === 0 ? (
+              <div className="col-span-full py-8 text-center text-slate-400 font-medium">No popular packages available yet.</div>
+            ) : popularPackages.map((pkg) => (
               <div 
-                key={pkg.id} 
-                onClick={() => router.push(`/packages/${pkg.id}`)}
+                key={pkg.packageId} 
+                onClick={() => router.push(`/packages/${pkg.packageId}`)}
                 className="bg-white/[0.02] border border-white/[0.05] hover:border-white/[0.15] rounded-3xl overflow-hidden cursor-pointer group transition-all hover:shadow-xl flex flex-col"
               >
                 <div className="relative w-full h-48 sm:h-56 overflow-hidden">
                   <Image 
-                    src={pkg.image} 
-                    alt={pkg.title} 
+                    src={pkg.images?.[0] || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80"} 
+                    alt={pkg.name} 
                     fill 
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-700" 
                   />
                   <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-bold text-white">
-                    {pkg.category}
+                    {categories.find(c => c.categoryId === pkg.categoryId)?.name || pkg.categoryId}
                   </div>
                   <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 text-white">
                     <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                    <span>{pkg.rating}</span>
+                    <span>4.9</span>
                   </div>
                 </div>
                 <div className="p-5 flex-1 flex flex-col justify-between">
                   <div>
-                    <h4 className="text-lg font-bold text-white mb-2 leading-snug group-hover:text-[#0098FF] transition-colors">{pkg.title}</h4>
+                    <h4 className="text-lg font-bold text-white mb-2 leading-snug group-hover:text-[#0098FF] transition-colors">{pkg.name}</h4>
                     <div className="flex items-center gap-4 text-xs text-slate-400 mb-4">
-                      <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> {pkg.duration}</span>
-                      <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {userCity}</span>
+                      <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> {pkg.durationHours}H</span>
+                      <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {pkg.city}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between pt-4 border-t border-white/5">
                     <div>
                       <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Starting from</p>
                       <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
-                        {pkg.price}
+                        ₹{pkg.basePrice.toLocaleString('en-IN')}
                       </span>
                     </div>
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleBookNow(pkg.id);
+                        handleBookNow(pkg.packageId);
                       }}
                       className="bg-white/10 hover:bg-white/20 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors"
                     >

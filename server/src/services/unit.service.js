@@ -39,7 +39,7 @@ class UnitService {
       UNIT_BALANCES_TABLE,
       { userId },
       UpdateExpression,
-      {},
+      undefined,
       {
         ":h": Number(hoursAmount) || 0,
         ":k": Number(kmAmount) || 0,
