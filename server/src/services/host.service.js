@@ -63,6 +63,64 @@ class HostService {
   }
 
   /**
+   * Update host profile basic info
+   */
+  static async updateProfile(hostId, payload) {
+    const now = new Date().toISOString();
+    
+    // We dynamically build the update expression based on provided fields
+    const allowedFields = ["bio", "categories", "languages", "city"];
+    let updateExpression = "SET updatedAt = :now";
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = { ":now": now };
+
+    for (const field of allowedFields) {
+      if (payload[field] !== undefined) {
+        updateExpression += `, #${field} = :${field}`;
+        expressionAttributeNames[`#${field}`] = field;
+        expressionAttributeValues[`:${field}`] = payload[field];
+      }
+    }
+
+    const updated = await DynamoDBHelper.updateItem(
+      HOSTS_TABLE,
+      { hostId },
+      updateExpression,
+      Object.keys(expressionAttributeNames).length > 0 ? expressionAttributeNames : undefined,
+      expressionAttributeValues
+    );
+    
+    // If city is provided, we should probably update it in the USERS_TABLE too, but for MVP it's okay to just keep in Host table if needed, or update user table.
+    // Actually, city is stored in USERS_TABLE mostly. Let's update it there if provided.
+    if (payload.city !== undefined) {
+      await DynamoDBHelper.updateItem(
+        USERS_TABLE,
+        { userId: hostId },
+        "SET city = :city, updatedAt = :now",
+        undefined,
+        { ":city": payload.city, ":now": now }
+      );
+    }
+
+    return updated;
+  }
+
+  /**
+   * Update online status (toggle)
+   */
+  static async updateOnlineStatus(hostId, isOnline) {
+    const now = new Date().toISOString();
+    const updated = await DynamoDBHelper.updateItem(
+      HOSTS_TABLE,
+      { hostId },
+      "SET isOnline = :isOnline, updatedAt = :now",
+      undefined,
+      { ":isOnline": isOnline, ":now": now }
+    );
+    return updated;
+  }
+
+  /**
    * Update host schedule and availability
    */
   static async updateAvailability(hostId, schedule) {

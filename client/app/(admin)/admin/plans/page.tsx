@@ -24,6 +24,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Database, Plus, Loader2, RefreshCcw, CheckCircle2, XCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AdminPlansPage() {
   const [plans, setPlans] = useState<any[]>([]);
@@ -62,8 +63,9 @@ export default function AdminPlansPage() {
     try {
       await AdminAPI.updatePlanStatus(planId, !currentStatus);
       setPlans(plans.map(p => p.planId === planId ? { ...p, isActive: !currentStatus } : p));
+      toast.success(`Plan status updated to ${!currentStatus ? 'Active' : 'Inactive'}`);
     } catch (err) {
-      alert("Failed to update status");
+      toast.error("Failed to update status");
     }
   };
 
@@ -71,9 +73,10 @@ export default function AdminPlansPage() {
     try {
       await AdminAPI.createPlan(newPlan);
       setIsDialogOpen(false);
+      toast.success("Plan created successfully!");
       fetchPlans();
     } catch (err: any) {
-      alert("Failed to create plan: " + err.message);
+      toast.error("Failed to create plan: " + err.message);
     }
   };
 

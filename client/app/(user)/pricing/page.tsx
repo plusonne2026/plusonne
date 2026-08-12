@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../lib/context/AuthContext";
 import { PricingAPI } from "../../lib/api/pricing.api";
 import { CheckCircle2, ChevronLeft, Loader2, Wallet, Zap, Shield, Crown, Package } from "lucide-react";
+import { toast } from "sonner";
 
 // Mock packages for direct booking
 const POPULAR_PACKAGES = [
@@ -69,10 +70,10 @@ function PricingContent() {
       // Mock Razorpay payment flow here, directly credit units for now
       // A Monthly Pro gives 100 Hours and 1000 KMs
       await PricingAPI.purchaseUnits(100, 1000, 3000);
-      alert("Successfully Subscribed to Monthly Pro! Your wallet has been credited.");
+      toast.success("Successfully Subscribed to Monthly Pro! Your wallet has been credited.");
       fetchData(); // Refresh balance
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      toast.error(`Error: ${err.message}`);
     } finally {
       setProcessing(false);
     }
@@ -89,12 +90,12 @@ function PricingContent() {
     try {
       const totalAmount = (buyHours * unitPrices.hourPrice) + (buyKms * unitPrices.kmPrice);
       await PricingAPI.purchaseUnits(buyHours, buyKms, totalAmount);
-      alert(`Successfully added units to your wallet!`);
+      toast.success(`Successfully added units to your wallet!`);
       setBuyHours(0);
       setBuyKms(0);
       fetchData(); // Refresh balance
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      toast.error(`Error: ${err.message}`);
     } finally {
       setProcessing(false);
     }

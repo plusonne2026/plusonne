@@ -9,6 +9,7 @@ router.use(authenticate);
 
 router.post("/", BookingController.createBooking);
 router.get("/my", BookingController.getMyBookings);
+router.get("/requests", BookingController.getBookingRequests);
 router.get("/:bookingId", BookingController.getBookingById);
 router.put("/:bookingId/status", BookingController.updateStatus);
 router.put("/:bookingId/cancel", BookingController.cancelBooking);

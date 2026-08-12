@@ -90,6 +90,49 @@ class HostController {
   }
 
   /**
+   * PUT /api/v1/hosts/me/profile
+   */
+  static async updateProfile(req, res, next) {
+    try {
+      const hostId = req.user.userId;
+      const payload = req.body; // e.g. { bio, categories, languages }
+      
+      const updated = await HostService.updateProfile(hostId, payload);
+      
+      return res.status(200).json({
+        success: true,
+        message: "Profile updated successfully",
+        data: updated,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/v1/hosts/me/earnings
+   */
+  static async getEarnings(req, res, next) {
+    try {
+      const hostId = req.user.userId;
+      const profile = await HostService.getHostProfile(hostId);
+      
+      if (!profile) {
+        return res.status(404).json({ success: false, message: "Host not found" });
+      }
+
+      // Normally we would query a Payouts/Transactions table here
+      // For MVP, we return the earnings aggregate object from the Host Profile
+      return res.status(200).json({
+        success: true,
+        data: profile.earnings || { thisMonth: 0, lastMonth: 0, total: 0, pending: 0 },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
    * PUT /api/v1/hosts/me/availability
    */
   static async updateAvailability(req, res, next) {
@@ -136,6 +179,29 @@ class HostController {
       return res.status(200).json({
         success: true,
         message: "KYC documents uploaded successfully",
+        data: updated,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * PUT /api/v1/hosts/me/status
+   */
+  static async updateOnlineStatus(req, res, next) {
+    try {
+      const hostId = req.user.userId;
+      const { isOnline } = req.body;
+
+      if (typeof isOnline !== "boolean") {
+        return res.status(400).json({ success: false, message: "isOnline must be a boolean" });
+      }
+
+      const updated = await HostService.updateOnlineStatus(hostId, isOnline);
+      return res.status(200).json({
+        success: true,
+        message: "Online status updated successfully",
         data: updated,
       });
     } catch (err) {

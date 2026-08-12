@@ -33,15 +33,16 @@ class BookingController {
 
   /**
    * GET /api/v1/bookings/my
-   * Get user's or host's bookings based on role
+   * Get user's or host's bookings based on role or query param
    */
   static async getMyBookings(req, res, next) {
     try {
       const { userId, role } = req.user;
       const limit = parseInt(req.query.limit) || 20;
+      const asRole = req.query.as || role; // Allow overriding via ?as=user or ?as=host
       
       let bookings = [];
-      if (role === ROLES.HOST) {
+      if (asRole === ROLES.HOST) {
         bookings = await BookingService.getHostBookings(userId, limit);
       } else {
         bookings = await BookingService.getUserBookings(userId, limit);
@@ -50,6 +51,28 @@ class BookingController {
       return res.status(200).json({
         success: true,
         data: bookings,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/v1/bookings/requests
+   * Get all PENDING_MATCH bookings for hosts
+   */
+  static async getBookingRequests(req, res, next) {
+    try {
+      const { role } = req.user;
+      if (role !== "host" && role !== "admin") {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+      }
+
+      const requests = await BookingService.getBookingRequests();
+      
+      return res.status(200).json({
+        success: true,
+        data: requests,
       });
     } catch (err) {
       next(err);

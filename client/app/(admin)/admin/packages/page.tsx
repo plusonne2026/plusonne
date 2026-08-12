@@ -12,6 +12,17 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +58,7 @@ export default function AdminPackagesPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [packageToDelete, setPackageToDelete] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<Partial<Package>>({
@@ -99,21 +111,25 @@ export default function AdminPackagesPage() {
         await PackagesAPI.create(dataToSave);
       }
       setIsModalOpen(false);
+      toast.success("Package saved successfully!");
       fetchData();
     } catch (err: any) {
-      alert(`Error saving package: ${err.message}`);
+      toast.error(`Error saving package: ${err.message}`);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this package?")) return;
+  const handleDelete = async () => {
+    if (!packageToDelete) return;
     try {
-      await PackagesAPI.delete(id);
+      await PackagesAPI.delete(packageToDelete);
+      toast.success("Package deleted successfully!");
       fetchData();
     } catch (err: any) {
-      alert(`Error deleting package: ${err.message}`);
+      toast.error(`Error deleting package: ${err.message}`);
+    } finally {
+      setPackageToDelete(null);
     }
   };
 
@@ -240,7 +256,7 @@ export default function AdminPackagesPage() {
                               <DropdownMenuItem onClick={() => { setFormData(pkg); setIsModalOpen(true); }} className="font-semibold cursor-pointer">
                                 Edit Package
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDelete(pkg.packageId)} className="font-semibold cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10">
+                              <DropdownMenuItem onClick={() => setPackageToDelete(pkg.packageId)} className="font-semibold cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10">
                                 Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -331,6 +347,23 @@ export default function AdminPackagesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!packageToDelete} onOpenChange={(open) => !open && setPackageToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the package.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600 text-white">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

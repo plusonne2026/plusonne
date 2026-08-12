@@ -14,6 +14,10 @@ import {
   RiShieldCheckFill,
   RiCrosshairLine,
   RiLoader4Line,
+  RiUser3Line,
+  RiCalendarEventLine,
+  RiLogoutCircleLine,
+  RiDashboardLine
 } from "@remixicon/react";
 
 export interface NavItem {
@@ -42,16 +46,18 @@ const CITIES = [
 ];
 
 export default function Navbar() {
-  const { isAuthenticated, user } = useAuth();
   const pathname = usePathname();
   const [selectedCity, setSelectedCity] = useState<string>("Mumbai");
   const [isGpsLocation, setIsGpsLocation] = useState<boolean>(false);
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState<boolean>(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-  const [isScrolled, setIsScrolled] = useState<boolean>(false);
-
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const { isAuthenticated, user, logout } = useAuth();
+  
   const cityDropdownRef = useRef<HTMLDivElement>(null);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
   // Detect user location via IP address (no browser permission prompt needed)
   const detectUserLocation = useCallback(async (isUserAction: boolean = false) => {
@@ -157,6 +163,12 @@ export default function Navbar() {
         !cityDropdownRef.current.contains(event.target as Node)
       ) {
         setIsCityDropdownOpen(false);
+      }
+      if (
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -298,13 +310,57 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Login / Sign Up CTA Button */}
-            <Link
-              href="/auth/login"
-              className="relative inline-flex items-center justify-center px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-[#FF6A3D] via-[#FF4E6E] to-[#9B51E0] hover:opacity-95 shadow-lg shadow-rose-500/20 transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
-            >
-              <span>Login / Sign Up</span>
-            </Link>
+            {/* Login / Auth Menu */}
+            {isAuthenticated ? (
+              <div className="relative" ref={profileDropdownRef}>
+                <button
+                  onClick={() => setIsProfileDropdownOpen((prev) => !prev)}
+                  className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-[#FF6A3D]/50 bg-[#111420] overflow-hidden flex items-center justify-center transition-all"
+                >
+                  {user?.profileImage ? (
+                    <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <RiUser3Line className="w-5 h-5 text-white" />
+                  )}
+                </button>
+
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 top-[calc(100%+0.5rem)] w-56 rounded-2xl bg-[#111420]/95 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)] p-2 z-50 animate-in slide-in-from-top-2">
+                    <div className="px-3 py-3 border-b border-white/5 mb-1">
+                      <p className="text-sm font-bold text-white truncate">{user?.firstName ? `${user.firstName} ${user.lastName}` : 'Verified User'}</p>
+                      <p className="text-xs text-zinc-400 truncate">{user?.email}</p>
+                    </div>
+                    
+                    <Link
+                      href={user?.role === "host" ? "/host/dashboard" : "/bookings"}
+                      onClick={() => setIsProfileDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                    >
+                      {user?.role === "host" ? <RiDashboardLine className="w-4 h-4 text-orange-400" /> : <RiCalendarEventLine className="w-4 h-4 text-orange-400" />}
+                      {user?.role === "host" ? "Host Dashboard" : "My Bookings"}
+                    </Link>
+                    
+                    <button
+                      onClick={async () => {
+                        setIsProfileDropdownOpen(false);
+                        await logout();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 mt-1 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors"
+                    >
+                      <RiLogoutCircleLine className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="relative inline-flex items-center justify-center px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-[#FF6A3D] via-[#FF4E6E] to-[#9B51E0] hover:opacity-95 shadow-lg shadow-rose-500/20 transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
+              >
+                <span>Login / Sign Up</span>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Controls */}

@@ -11,6 +11,17 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +56,7 @@ export default function AdminCategoriesPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<Partial<Category>>({
@@ -82,21 +94,25 @@ export default function AdminCategoriesPage() {
         await CategoriesAPI.create(formData);
       }
       setIsModalOpen(false);
+      toast.success("Category saved successfully!");
       fetchCategories();
     } catch (err: any) {
-      alert(`Error saving category: ${err.message}`);
+      toast.error(`Error saving category: ${err.message}`);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this category?")) return;
+  const handleDelete = async () => {
+    if (!categoryToDelete) return;
     try {
-      await CategoriesAPI.delete(id);
+      await CategoriesAPI.delete(categoryToDelete);
+      toast.success("Category deleted successfully!");
       fetchCategories();
     } catch (err: any) {
-      alert(`Error deleting category: ${err.message}`);
+      toast.error(`Error deleting category: ${err.message}`);
+    } finally {
+      setCategoryToDelete(null);
     }
   };
 
@@ -213,7 +229,7 @@ export default function AdminCategoriesPage() {
                               <DropdownMenuItem onClick={() => { setFormData(cat); setIsModalOpen(true); }} className="font-semibold cursor-pointer">
                                 Edit Category
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDelete(cat.categoryId)} className="font-semibold cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10">
+                              <DropdownMenuItem onClick={() => setCategoryToDelete(cat.categoryId)} className="font-semibold cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10">
                                 Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -275,6 +291,23 @@ export default function AdminCategoriesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!categoryToDelete} onOpenChange={(open) => !open && setCategoryToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the category.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600 text-white">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

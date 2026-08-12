@@ -6,6 +6,7 @@ import { PackagesAPI, Package } from "../../../lib/api/packages.api";
 import { PaymentAPI } from "../../../lib/api/payment.api";
 import { useAuth } from "../../../lib/context/AuthContext";
 import { Calendar, MapPin, Loader2, Star, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "../../../lib/api/client";
 
@@ -55,7 +56,20 @@ export default function PackageDetailsPage({ params }: { params: Promise<{ packa
     }
 
     if (!scheduledDate || !scheduledTime || !pickupLocation) {
-      alert("Please fill in Date, Time, and Pickup Location.");
+      toast.warning("Please fill in Date, Time, and Pickup Location.");
+      return;
+    }
+
+    // Strict Date Validation
+    const todayStr = new Date().toISOString().split("T")[0];
+    if (scheduledDate < todayStr) {
+      toast.warning("You cannot select a past date.");
+      return;
+    }
+
+    // Address Validation
+    if (pickupLocation.trim().length < 10) {
+      toast.warning("Please enter a complete and valid address (at least 10 characters).");
       return;
     }
 

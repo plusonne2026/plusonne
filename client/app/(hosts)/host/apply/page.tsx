@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "../../../lib/context/AuthContext";
 import { HostAPI, HostRegistrationRequest, DaySchedule } from "../../../lib/api/host.api";
+import { CategoriesAPI, Category } from "../../../lib/api/categories.api";
 import { MediaAPI } from "../../../lib/api/media.api";
 import { setupRecaptcha } from "../../../lib/firebase/config";
 import {
@@ -38,19 +39,13 @@ import {
 } from "lucide-react";
 import { RecaptchaVerifier, ConfirmationResult } from "firebase/auth";
 
-import categoryData from "../../../lib/data/categories.json";
-
 const ICON_MAP: Record<string, any> = {
   Coffee,
   Compass,
   Trophy,
   PartyPopper,
+  Sparkles,
 };
-
-const CATEGORY_OPTIONS = categoryData.map((c) => ({
-  ...c,
-  icon: ICON_MAP[c.icon],
-}));
 
 const LANGUAGE_OPTIONS = [
   "English",
@@ -100,6 +95,28 @@ export default function HostApplyPage() {
   const [step, setStep] = useState<number>(isAuthenticated ? 1 : 0);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
+
+  // Load categories from DB
+  useEffect(() => {
+    const fetchCats = async () => {
+      try {
+        const cats = await CategoriesAPI.getAll();
+        const formattedCats = cats.map(c => ({
+          id: c.categoryId,
+          name: c.name,
+          desc: c.description,
+          icon: ICON_MAP[c.iconUrl] || Sparkles,
+          color: "from-[#0098FF] to-[#1C7AFF]",
+          rate: "₹1,500 / hr avg" // Fallback since DB doesn't have rate currently
+        }));
+        setDbCategories(formattedCats);
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
+    };
+    fetchCats();
+  }, []);
 
   // Sync step when user logs in at Step 0
   useEffect(() => {
@@ -841,7 +858,7 @@ export default function HostApplyPage() {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {CATEGORY_OPTIONS.map((cat) => {
+              {dbCategories.map((cat) => {
                 const Icon = cat.icon;
                 const isSelected = selectedCategories.includes(cat.id);
                 return (

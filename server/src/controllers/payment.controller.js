@@ -75,8 +75,8 @@ class PaymentController {
         status: "success",
       });
 
-      // Update booking status to active/host_assigned (For MVP, we'll assume auto-assignment or pending host acceptance)
-      const updatedBooking = await BookingService.updateBookingStatus(bookingId, "host_assigned", "system", "system");
+      // Update booking status to pending_match (Pending Host Assignment)
+      const updatedBooking = await BookingService.updateBookingStatus(bookingId, "pending_match", "system", "system");
 
       return res.status(200).json({
         success: true,

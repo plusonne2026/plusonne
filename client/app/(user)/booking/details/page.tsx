@@ -3,6 +3,7 @@
 import React, { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, MapPin, Calendar, Clock, Sparkles, Navigation, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 // Mock packages (matching pricing page)
 const POPULAR_PACKAGES = [
@@ -58,19 +59,19 @@ function BookingDetailsContent() {
           }
         },
         (error) => {
-          alert("Failed to get location. Please type it manually.");
+          toast.error("Failed to get location. Please type it manually.");
           setDetecting(false);
         }
       );
     } else {
-      alert("Geolocation is not supported by your browser");
+      toast.error("Geolocation is not supported by your browser");
       setDetecting(false);
     }
   };
 
   const handleConfirm = () => {
     if (!date || !time || !location) {
-      alert("Please fill in Date, Time and Pickup Location");
+      toast.warning("Please fill in Date, Time and Pickup Location");
       return;
     }
     

@@ -7,6 +7,8 @@ export interface BookingRequest {
   userId?: string;
   clientName: string;
   clientAvatar: string;
+  hostName?: string;
+  hostAvatar?: string;
   category: string;
   date: string;
   time: string;
@@ -17,7 +19,7 @@ export interface BookingRequest {
   userLng?: number;
   hostLat?: number;
   hostLng?: number;
-  status: "pending" | "accepted" | "declined" | "in_session" | "completed" | "cancelled";
+  status: "pending" | "pending_match" | "host_assigned" | "host_confirmed" | "active" | "completed" | "cancelled" | "rejected";
   notes?: string;
   createdAt?: string;
 }
@@ -40,10 +42,49 @@ export const BookingAPI = {
    */
   getRequests: async (): Promise<BookingRequest[]> => {
     try {
-      const res = await apiClient.get<{ success: boolean; data: BookingRequest[] }>("/bookings/requests");
-      return res.data || [];
+      const res = await apiClient.get<{ success: boolean; data: any[] }>("/bookings/requests");
+      return (res.data || []).map(b => ({
+        ...b,
+        id: b.bookingId,
+        clientName: b.clientName || (b.userId ? `User ${b.userId.substring(0, 4)}` : "Verified User"),
+        clientAvatar: b.clientAvatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+        category: b.categoryId || "Companionship",
+        date: b.scheduledDate || "TBD",
+        time: b.scheduledTime || "TBD",
+        duration: b.durationHours ? `${b.durationHours} Hours` : "As per package",
+        payout: b.price?.total || b.price?.base || 0,
+        location: b.pickupLocation?.address || "Location pending",
+      }));
     } catch (err) {
       console.warn("API error fetching bookings, returning empty fallback list", err);
+      return [];
+    }
+  },
+
+  /**
+   * Get current user's or host's bookings
+   * GET /api/v1/bookings/my
+   */
+  getMyBookings: async (asRole?: 'user' | 'host'): Promise<BookingRequest[]> => {
+    try {
+      const url = asRole ? `/bookings/my?as=${asRole}` : "/bookings/my";
+      const res = await apiClient.get<{ success: boolean; data: any[] }>(url);
+      return (res.data || []).map(b => ({
+        ...b,
+        id: b.bookingId,
+        clientName: b.clientName || (b.userId ? `User ${b.userId.substring(0, 4)}` : "Verified User"),
+        clientAvatar: b.clientAvatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+        hostName: b.hostName || undefined,
+        hostAvatar: b.hostAvatar || undefined,
+        category: b.categoryId || "Companionship",
+        date: b.scheduledDate || "TBD",
+        time: b.scheduledTime || "TBD",
+        duration: b.durationHours ? `${b.durationHours} Hours` : "As per package",
+        payout: b.price?.total || b.price?.base || 0,
+        location: b.pickupLocation?.address || "Location pending",
+      }));
+    } catch (err) {
+      console.warn("API error fetching my bookings, returning empty fallback list", err);
       return [];
     }
   },

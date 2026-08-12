@@ -19,6 +19,7 @@ import {
   Wallet,
   CreditCard,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -89,8 +90,9 @@ export default function AdminUsersDirectoryPage() {
       setUsers((prev) =>
         prev.map((u) => (u.userId === userId ? { ...u, status: newStatus } : u))
       );
+      toast.success(`User status updated to ${newStatus}`);
     } catch (err: any) {
-      alert(`Failed to update status: ${err.message || "Unknown error"}`);
+      toast.error(`Failed to update status: ${err.message || "Unknown error"}`);
     } finally {
       setActionLoadingId(null);
     }
@@ -103,8 +105,9 @@ export default function AdminUsersDirectoryPage() {
       setUsers((prev) =>
         prev.map((u) => (u.userId === userId ? { ...u, role: newRole } : u))
       );
+      toast.success(`User role updated to ${newRole}`);
     } catch (err: any) {
-      alert(`Failed to update role: ${err.message || "Unknown error"}`);
+      toast.error(`Failed to update role: ${err.message || "Unknown error"}`);
     } finally {
       setActionLoadingId(null);
     }
@@ -133,9 +136,9 @@ export default function AdminUsersDirectoryPage() {
       setWalletBalance(res.data);
       setCreditHours(0);
       setCreditKm(0);
-      alert("Units credited successfully!");
+      toast.success("Units credited successfully!");
     } catch (err: any) {
-      alert("Failed to credit units: " + err.message);
+      toast.error("Failed to credit units: " + err.message);
     } finally {
       setWalletLoading(false);
     }

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@react-google-maps/api": "^2.20.8",
     "@remixicon/react": "^4.9.0",
     "@shadcn/react": "^0.2.1",
     "@types/leaflet": "^1.9.22",

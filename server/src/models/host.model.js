@@ -26,7 +26,7 @@ function formatHostProfileModel(payload) {
     completionRate: payload.completionRate || 100,
     languages: payload.languages || ["English"],
     experienceYears: typeof payload.experienceYears === "number" ? payload.experienceYears : 1,
-    kycStatus: payload.kycStatus || "pending", // pending / verified / rejected
+    kycStatus: payload.kycStatus || "verified", // Auto-verified for MVP testing
     kycDocuments: payload.kycDocuments || {
       aadhaarUrl: null,
       panUrl: null,

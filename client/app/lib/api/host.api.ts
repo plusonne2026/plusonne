@@ -100,6 +100,33 @@ export const HostAPI = {
   },
 
   /**
+   * Toggle online/offline status
+   * PUT /api/v1/hosts/me/status
+   */
+  updateOnlineStatus: async (isOnline: boolean): Promise<any> => {
+    const res = await apiClient.put<{ success: boolean; data: any }>("/hosts/me/status", { isOnline });
+    return res.data;
+  },
+
+  /**
+   * Update basic profile (bio, languages, categories)
+   * PUT /api/v1/hosts/me/profile
+   */
+  updateProfile: async (data: Partial<HostProfile>): Promise<any> => {
+    const res = await apiClient.put<{ success: boolean; data: any }>("/hosts/me/profile", data);
+    return res.data;
+  },
+
+  /**
+   * Get earnings info
+   * GET /api/v1/hosts/me/earnings
+   */
+  getEarnings: async (): Promise<any> => {
+    const res = await apiClient.get<{ success: boolean; data: any }>("/hosts/me/earnings");
+    return res.data;
+  },
+
+  /**
    * Upload / update KYC verification documents
    * POST /api/v1/hosts/me/kyc
    */
@@ -138,22 +165,4 @@ export const HostAPI = {
     return res.data;
   },
 
-  /**
-   * Get host earnings & financial metrics
-   * GET /api/v1/hosts/me/earnings
-   */
-  getEarnings: async (): Promise<any> => {
-    try {
-      const res = await apiClient.get<{ success: boolean; data: any }>("/hosts/me/earnings");
-      return res.data;
-    } catch (err) {
-      return {
-        thisMonth: 12450,
-        lastMonth: 18900,
-        total: 31350,
-        pending: 3497,
-        completedPayouts: 27853,
-      };
-    }
-  },
 };

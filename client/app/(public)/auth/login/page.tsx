@@ -20,6 +20,8 @@ import {
   Briefcase,
   Star,
 } from "lucide-react";
+import { toast } from "sonner";
+import { FcGoogle } from "react-icons/fc";
 import { RecaptchaVerifier, ConfirmationResult } from "firebase/auth";
 
 type ViewMode = "email_signin" | "email_signup" | "phone_otp";
@@ -334,7 +336,7 @@ export default function LoginPage() {
                     {viewMode === "email_signin" && (
                       <span
                         onClick={() =>
-                          alert("Please use Google login or OTP verification if you forgot your email password.")
+                          toast.info("Please use Google login or OTP verification if you forgot your email password.")
                         }
                         className="text-xs text-[#0098FF] hover:text-[#1C7AFF] cursor-pointer font-semibold transition-colors"
                       >

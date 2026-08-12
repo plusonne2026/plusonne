@@ -20,6 +20,7 @@ import {
   X,
   Sparkles,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -86,7 +87,7 @@ export default function AdminHostsManagementPage() {
   const handleStatusUpdate = async (status: "verified" | "rejected") => {
     if (!selectedHost) return;
     if (status === "rejected" && !rejectionReason.trim()) {
-      alert("Please enter a brief rejection reason for the host.");
+      toast.warning("Please enter a brief rejection reason for the host.");
       return;
     }
     setActionLoading(true);
@@ -99,8 +100,9 @@ export default function AdminHostsManagementPage() {
       );
       setDialogOpen(false);
       setSelectedHost(null);
+      toast.success(`Host status updated to ${status}`);
     } catch (err: any) {
-      alert(`Failed to update KYC status: ${err.message || "Unknown error"}`);
+      toast.error(`Failed to update KYC status: ${err.message || "Unknown error"}`);
     } finally {
       setActionLoading(false);
     }

@@ -8,6 +8,7 @@ import { PaymentAPI } from "../../../../lib/api/payment.api";
 import { useAuth } from "../../../../lib/context/AuthContext";
 import { apiClient } from "../../../../lib/api/client";
 import { Loader2, ArrowLeft, Wallet, CreditCard, CheckCircle2, ShieldCheck, MapPin, Calendar, Clock } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 export default function CheckoutPage({ params }: { params: Promise<{ packageId: string }> }) {
@@ -119,7 +120,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ packageId: 
               sessionStorage.removeItem("plusone_pending_booking");
               setPaymentSuccess(true);
             } catch (err) {
-              alert("Payment verification failed. If money was deducted, it will be refunded.");
+              toast.error("Payment verification failed. If money was deducted, it will be refunded.");
             }
           },
           prefill: {
@@ -131,7 +132,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ packageId: 
 
         const rzp = new window.Razorpay(options);
         rzp.on("payment.failed", function (response: any) {
-          alert(`Payment Failed: ${response.error.description}`);
+          toast.error(`Payment Failed: ${response.error.description}`);
           setProcessing(false);
         });
         rzp.open();
@@ -139,7 +140,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ packageId: 
         // Don't set processing to false yet, wait for Razorpay callback
       }
     } catch (err: any) {
-      alert(`Checkout Error: ${err.message}`);
+      toast.error(`Checkout Error: ${err.message}`);
       setProcessing(false);
     }
   };
