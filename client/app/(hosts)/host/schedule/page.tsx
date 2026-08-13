@@ -10,14 +10,17 @@ import {
   PlayCircle,
   Loader2,
   Calendar,
+  MessageSquare
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/app/lib/context/AuthContext";
+import LiveChatModal from "@/app/components/session/LiveChatModal";
 
 export default function HostSchedulePage() {
   const [bookings, setBookings] = useState<APIBookingRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const [activeChatBooking, setActiveChatBooking] = useState<APIBookingRequest | null>(null);
 
   useEffect(() => {
     fetchMyBookings();
@@ -127,7 +130,16 @@ export default function HostSchedulePage() {
 
                   {/* Actions */}
                   <div className="flex flex-col items-start md:items-end gap-4 shrink-0">
-                    <div className="flex items-center gap-2 w-full md:w-auto">
+                    <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                      {!isCompleted && (
+                        <button
+                          onClick={() => setActiveChatBooking(booking)}
+                          className="flex-1 md:flex-none px-6 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-black text-xs flex items-center justify-center gap-2 transition-all"
+                        >
+                          <MessageSquare className="w-4 h-4" /> Chat
+                        </button>
+                      )}
+
                       {isConfirmed && (
                         <button
                           onClick={() => handleUpdateStatus(reqId as string, "active")}
@@ -158,6 +170,18 @@ export default function HostSchedulePage() {
           })
         )}
       </div>
+
+      {/* Chat Modal */}
+      {activeChatBooking && (
+        <LiveChatModal
+          bookingId={activeChatBooking.id || activeChatBooking.bookingId}
+          currentUserId={user?.id || "host"}
+          currentUserName={user?.name || "Host"}
+          otherPartyName={activeChatBooking.clientName}
+          isOpen={!!activeChatBooking}
+          onClose={() => setActiveChatBooking(null)}
+        />
+      )}
     </div>
   );
 }

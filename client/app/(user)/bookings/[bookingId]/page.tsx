@@ -19,8 +19,9 @@ import {
   Star
 } from "lucide-react";
 import Link from "next/link";
-import LiveMap from "@/app/components/map/LiveMap";
+import LiveSessionMap from "@/app/components/session/LiveSessionMap";
 import SOSOverlay from "@/app/components/ui/SOSOverlay";
+import LiveChatModal from "@/app/components/session/LiveChatModal";
 
 export default function BookingDetailsPage() {
   const { bookingId } = useParams();
@@ -30,6 +31,7 @@ export default function BookingDetailsPage() {
   const [booking, setBooking] = useState<APIBookingRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSOSOverlay, setShowSOSOverlay] = useState(false);
+  const [showChatModal, setShowChatModal] = useState(false);
   
   const handleTriggerSOS = async () => {
     try {
@@ -131,7 +133,10 @@ export default function BookingDetailsPage() {
                       <button className="flex-1 py-3 rounded-xl bg-[#0098FF]/10 text-[#0098FF] font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#0098FF]/20 transition-colors">
                         <Phone className="w-4 h-4" /> Call
                       </button>
-                      <button className="flex-1 py-3 rounded-xl bg-white/[0.05] text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-white/[0.1] transition-colors">
+                      <button 
+                        onClick={() => setShowChatModal(true)}
+                        className="flex-1 py-3 rounded-xl bg-white/[0.05] text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-white/[0.1] transition-colors"
+                      >
                         <MessageCircle className="w-4 h-4" /> Chat
                       </button>
                     </div>
@@ -206,11 +211,14 @@ export default function BookingDetailsPage() {
               
               <div className="absolute inset-0 flex items-center justify-center z-0">
                 {hasHostAssigned ? (
-                  <LiveMap 
-                    userLocation={{ lat: 28.6120, lng: 77.2100 }} // Simulated
-                    hostLocation={{ lat: 28.6250, lng: 77.2250 }} // Simulated
-                    simulateMovement={true}
-                  />
+                  <div className="absolute inset-0">
+                    <LiveSessionMap 
+                      userCoords={{ lat: 28.6120, lng: 77.2100 }} // Simulated
+                      hostCoords={{ lat: 28.6250, lng: 77.2250 }} // Simulated
+                      clientName={booking.hostName || "Host"}
+                      locationName={booking.location}
+                    />
+                  </div>
                 ) : (
                   <div className="text-center text-zinc-500">
                     <MapPin className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -248,6 +256,17 @@ export default function BookingDetailsPage() {
         <SOSOverlay 
           bookingId={bookingId as string} 
           onCancel={() => setShowSOSOverlay(false)} 
+        />
+      )}
+
+      {booking && (
+        <LiveChatModal 
+          isOpen={showChatModal}
+          onClose={() => setShowChatModal(false)}
+          bookingId={bookingId as string}
+          currentUserId={localStorage.getItem("userId") || "user_unknown"}
+          currentUserName={booking.clientName || "User"}
+          otherPartyName={booking.hostName || "Host"}
         />
       )}
     </div>

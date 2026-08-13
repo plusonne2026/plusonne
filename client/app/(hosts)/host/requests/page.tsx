@@ -60,9 +60,9 @@ export default function HostRequestsPage() {
       await BookingAPI.updateStatus(id, "host_confirmed" as any);
       setRequests((prev) => prev.filter((r) => (r.id || r.bookingId) !== id));
       toast.success("Booking Accepted Successfully!", {
-        description: "It is now added to your schedule."
+        description: "Entering Live Session dashboard..."
       });
-      router.push("/host/schedule");
+      router.push(`/host/session/${id}`);
     } catch (err) {
       toast.error("Failed to accept booking.");
     } finally {
@@ -71,13 +71,18 @@ export default function HostRequestsPage() {
     }
   };
 
-  const handleDeclineRequest = (id: string) => {
+  const handleDeclineRequest = async (id: string) => {
     setIsProcessing(true);
-    // Declining just hides it for this host locally (or sets a rejected list in DB)
-    setRequests((prev) => prev.filter((r) => (r.id || r.bookingId) !== id));
-    toast.success("Booking Declined");
-    setIsProcessing(false);
-    setConfirmAction(null);
+    try {
+      await BookingAPI.updateStatus(id, "rejected" as any, "Host declined the request");
+      setRequests((prev) => prev.filter((r) => (r.id || r.bookingId) !== id));
+      toast.success("Booking Declined");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to decline booking.");
+    } finally {
+      setIsProcessing(false);
+      setConfirmAction(null);
+    }
   };
   
   const handleConfirm = () => {

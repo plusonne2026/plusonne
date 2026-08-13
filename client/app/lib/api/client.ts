@@ -55,6 +55,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     const response = await fetch(url, {
       ...options,
       headers,
+      cache: "no-store",
     });
 
     let data: any;

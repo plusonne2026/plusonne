@@ -24,6 +24,7 @@ export function HostAppSidebar({
 }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
   const [pendingRequests, setPendingRequests] = React.useState<number>(0);
+  const [hostProfile, setHostProfile] = React.useState<any>(null);
 
   React.useEffect(() => {
     // We will poll or just fetch once for the MVP.
@@ -35,6 +36,11 @@ export function HostAppSidebar({
         }
       })
       .catch(() => {});
+      
+    // Fetch profile for avatar
+    import("@/app/lib/api/host.api").then(({ HostAPI }) => {
+      HostAPI.getProfile().then(profile => setHostProfile(profile)).catch(() => {});
+    });
   }, []);
 
   const navGroupsWithDynamicBadges = React.useMemo(() => {
@@ -55,12 +61,12 @@ export function HostAppSidebar({
   const activeUserData = React.useMemo(() => {
     if (!user) return hostSidebarData.user;
     return {
-      name: user.displayName || hostSidebarData.user.name,
+      name: hostProfile?.displayName || user.displayName || hostSidebarData.user.name,
       email: user.email || hostSidebarData.user.email,
-      avatar: user.avatarUrl || hostSidebarData.user.avatar,
+      avatar: hostProfile?.kycDocuments?.photoUrl || hostProfile?.avatarUrl || user.avatarUrl || hostSidebarData.user.avatar,
       role: user.role || hostSidebarData.user.role,
     };
-  }, [user]);
+  }, [user, hostProfile]);
 
   return (
     <Sidebar

@@ -107,16 +107,12 @@ export const BookingAPI = {
    * Update booking status (accepted, declined, in_session, completed)
    * PUT /api/v1/bookings/:bookingId/status
    */
-  updateStatus: async (bookingId: string, status: BookingRequest["status"]): Promise<BookingRequest> => {
-    try {
-      const res = await apiClient.put<{ success: boolean; data: BookingRequest }>(`/bookings/${bookingId}/status`, {
-        status,
-      });
-      return res.data;
-    } catch (err) {
-      console.warn("Backend API route unavailable, executing UI status transition:", status);
-      return { bookingId, status } as BookingRequest;
-    }
+  updateStatus: async (bookingId: string, status: BookingRequest["status"], reason?: string): Promise<BookingRequest> => {
+    const res = await apiClient.put<{ success: boolean; data: BookingRequest }>(`/bookings/${bookingId}/status`, {
+      status,
+      reason,
+    });
+    return res.data;
   },
 
   /**

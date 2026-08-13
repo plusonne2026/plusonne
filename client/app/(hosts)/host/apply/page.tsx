@@ -165,9 +165,9 @@ export default function HostApplyPage() {
   });
 
   // Step 5 States: KYC Documents
-  const [aadhaarUrl, setAadhaarUrl] = useState<string>("https://cloudinary.com/demo/aadhaar_verified.jpg");
-  const [panUrl, setPanUrl] = useState<string>("https://cloudinary.com/demo/pan_verified.jpg");
-  const [photoUrl, setPhotoUrl] = useState<string>("https://cloudinary.com/demo/selfie_verified.jpg");
+  const [aadhaarUrl, setAadhaarUrl] = useState<string>("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80");
+  const [panUrl, setPanUrl] = useState<string>("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80");
+  const [photoUrl, setPhotoUrl] = useState<string>("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80");
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
 
   // Step 6 States: Bank Account Details & Skip Option

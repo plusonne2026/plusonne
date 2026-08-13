@@ -82,6 +82,23 @@ export default function ActiveSessionPage({
       if (data.hostLat && data.hostLng) {
         setHostCoords({ lat: data.hostLat, lng: data.hostLng });
       }
+      
+      // Auto-start session if entering this page and not started
+      if (data.status !== "in_session" && data.status !== "completed") {
+        try {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions/${bookingId}/start`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          BookingAPI.updateStatus(bookingId, "in_session").catch(() => {});
+          pushBookingStatusRealtime(bookingId, "in_session").catch(() => {});
+        } catch (err) {
+          console.error("Failed to start session on backend", err);
+        }
+      }
     } else {
       // Fallback booking object if new session ID
       setBooking({
@@ -177,9 +194,11 @@ export default function ActiveSessionPage({
     if (!chatInput.trim()) return;
     setSendingChat(true);
     try {
+      const hostId = localStorage.getItem("userId") || "host_unknown";
+      const hostName = localStorage.getItem("userName") || "Host (You)";
       await sendChatMessage(bookingId, {
-        senderId: "host_me",
-        senderName: "Host (You)",
+        senderId: hostId,
+        senderName: hostName,
         text: chatInput.trim(),
       });
       setChatInput("");
@@ -190,11 +209,25 @@ export default function ActiveSessionPage({
     }
   };
 
-  const handleCompleteSession = () => {
+  const handleCompleteSession = async () => {
     setCompleting(true);
     // Trigger background updates asynchronously
     BookingAPI.updateStatus(bookingId, "completed").catch(() => {});
     pushBookingStatusRealtime(bookingId, "completed").catch(() => {});
+    
+    // Call backend API to end session and save chat history
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions/${bookingId}/end`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ chatMessages: messages })
+      });
+    } catch (err) {
+      console.error("Failed to save session chat", err);
+    }
     // Navigate immediately to rating screen
     router.push(`/host/session/${bookingId}/rate`);
   };

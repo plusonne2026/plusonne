@@ -105,7 +105,7 @@ export default function HostDashboardPage() {
         <div className="flex items-start sm:items-center gap-5 z-10">
           <div className="relative shrink-0">
             <img
-              src={profile?.avatarUrl || user?.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80"}
+              src={profile?.kycDocuments?.photoUrl || profile?.avatarUrl || user?.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80"}
               alt="Profile"
               className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl object-cover border-2 border-white/[0.15] shadow-xl"
             />

@@ -13,6 +13,7 @@ const bookingRoutes = require("./booking.routes");
 const paymentRoutes = require("./payment.routes");
 const sessionRoutes = require("./session.routes");
 const sosRoutes = require("./sos.routes");
+const chatRoutes = require("./chat.routes");
 
 const router = express.Router();
 
@@ -69,5 +70,6 @@ router.use("/bookings", bookingRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/sessions", sessionRoutes);
 router.use("/sos", sosRoutes);
+router.use("/chats", chatRoutes);
 
 module.exports = router;

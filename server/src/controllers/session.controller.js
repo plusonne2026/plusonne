@@ -1,4 +1,5 @@
 const BookingService = require('../services/booking.service');
+const ChatController = require('./chat.controller');
 
 class SessionController {
   /**
@@ -34,6 +35,7 @@ class SessionController {
     try {
       const { bookingId } = req.params;
       const { userId, role } = req.user;
+      const { chatMessages } = req.body; // Accept chat messages from frontend
 
       const updated = await BookingService.updateBookingStatus(
         bookingId,
@@ -41,6 +43,11 @@ class SessionController {
         role,
         userId
       );
+
+      // Save chat history if provided
+      if (chatMessages && chatMessages.length > 0) {
+        await ChatController.saveSessionChat(bookingId, chatMessages);
+      }
 
       return res.status(200).json({
         success: true,

@@ -19,9 +19,9 @@ export default function HostsLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (!isLoading) {
-      if (!isAuthenticated) {
+      if (!isAuthenticated && !isApplyPage) {
         router.push("/auth/login?redirect=" + pathname);
-      } else if (user?.role !== "host" && !isApplyPage) {
+      } else if (isAuthenticated && user?.role !== "host" && !isApplyPage) {
         router.push("/home");
       }
     }
