@@ -1,3 +1,4 @@
+import React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Outfit, Raleway } from "next/font/google";
 import "./globals.css";
@@ -44,7 +45,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          <AuthProvider>{children}</AuthProvider>
+          <React.Suspense fallback={<div className="h-screen w-screen flex items-center justify-center bg-[#07090E]"><div className="w-8 h-8 border-4 border-[#0098FF] border-t-transparent rounded-full animate-spin"></div></div>}>
+            <AuthProvider>{children}</AuthProvider>
+          </React.Suspense>
           <Toaster position="top-right" richColors />
         </ThemeProvider>
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
