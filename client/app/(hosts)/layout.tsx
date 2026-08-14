@@ -23,6 +23,8 @@ export default function HostsLayout({ children }: { children: React.ReactNode })
         router.push("/auth/login?redirect=" + pathname);
       } else if (isAuthenticated && user?.role !== "host" && !isApplyPage) {
         router.push("/home");
+      } else if (isAuthenticated && user?.role === "host" && isApplyPage) {
+        router.push("/host/dashboard");
       }
     }
   }, [isLoading, isAuthenticated, user, isApplyPage, pathname, router]);
@@ -32,6 +34,9 @@ export default function HostsLayout({ children }: { children: React.ReactNode })
   }
 
   if (isApplyPage) {
+    if (isAuthenticated && user?.role === "host") {
+      return <div className="min-h-screen bg-[#07090E]" />;
+    }
     return <>{children}</>;
   }
 

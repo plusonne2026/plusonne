@@ -24,6 +24,8 @@ import {
   ShieldCheck,
   X,
   CreditCard,
+  User,
+  Crown,
 } from "lucide-react";
 import { CategoriesAPI, Category } from "../../lib/api/categories.api";
 import { PackagesAPI, Package } from "../../lib/api/packages.api";
@@ -182,7 +184,7 @@ export default function UserHomePage() {
               <Bell className="w-4 h-4 text-slate-300" />
               <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
             </button>
-            <div className="flex items-center gap-3 bg-white/5 border border-white/10 pl-2 pr-4 py-1.5 rounded-full cursor-pointer hover:bg-white/10 transition-colors">
+            <div onClick={() => router.push("/profile")} className="flex items-center gap-3 bg-white/5 border border-white/10 pl-2 pr-4 py-1.5 rounded-full cursor-pointer hover:bg-white/10 transition-colors">
               {user?.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
@@ -199,7 +201,8 @@ export default function UserHomePage() {
             {/* Desktop Nav Links */}
             <div className="hidden md:flex items-center gap-2 border-l border-white/10 pl-4">
               <button onClick={() => router.push("/bookings")} className="text-sm font-medium text-slate-300 hover:text-white px-3 py-2 rounded-lg transition-colors">Bookings</button>
-              <button onClick={() => router.push("/pricing")} className="text-sm font-medium text-amber-400 hover:text-amber-300 px-3 py-2 rounded-lg border border-amber-400/20 bg-amber-400/5 transition-colors flex items-center gap-2">
+              <button onClick={() => router.push("/pricing")} className="text-sm font-medium text-slate-300 hover:text-white px-3 py-2 rounded-lg transition-colors">Plans</button>
+              <button onClick={() => router.push("/wallet")} className="text-sm font-medium text-amber-400 hover:text-amber-300 px-3 py-2 rounded-lg border border-amber-400/20 bg-amber-400/5 transition-colors flex items-center gap-2">
                 <Wallet className="w-4 h-4"/> 
                 {userBalance && (userBalance.hoursBalance > 0 || userBalance.kmBalance > 0) ? (
                   <span>⚡ {userBalance.hoursBalance} Hrs | {userBalance.kmBalance} KM</span>
@@ -467,9 +470,17 @@ export default function UserHomePage() {
           <Calendar className="w-5 h-5" />
           <span className="text-[9px] font-bold">Bookings</span>
         </button>
-        <button onClick={() => router.push("/pricing")} className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-400 transition-colors">
+        <button onClick={() => router.push("/wallet")} className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-400 transition-colors">
           <Wallet className="w-5 h-5" />
           <span className="text-[9px] font-bold">Wallet</span>
+        </button>
+        <button onClick={() => router.push("/pricing")} className="flex flex-col items-center gap-1 text-slate-400 hover:text-fuchsia-400 transition-colors">
+          <Crown className="w-5 h-5" />
+          <span className="text-[9px] font-bold">Plans</span>
+        </button>
+        <button onClick={() => router.push("/profile")} className="flex flex-col items-center gap-1 text-slate-400 hover:text-[#0C4CD9] transition-colors">
+          <User className="w-5 h-5" />
+          <span className="text-[9px] font-bold">Profile</span>
         </button>
         <button onClick={handleLogout} className="flex flex-col items-center gap-1 text-slate-400 hover:text-rose-400 transition-colors">
           <LogOut className="w-5 h-5" />

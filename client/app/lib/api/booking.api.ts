@@ -121,11 +121,23 @@ export const BookingAPI = {
    */
   submitRating: async (payload: RatingPayload): Promise<any> => {
     try {
-      const res = await apiClient.post<{ success: boolean; data: any }>("/ratings", payload);
+      const backendPayload = {
+        bookingId: payload.bookingId,
+        targetUserId: payload.userId || payload.hostId,
+        rating: Math.round((payload.behavior + payload.respect + payload.safety + payload.cooperation) / 4),
+        review: payload.reviewText || "",
+        tags: [
+          `behavior:${payload.behavior}`,
+          `respect:${payload.respect}`,
+          `safety:${payload.safety}`,
+          `cooperation:${payload.cooperation}`
+        ]
+      };
+      const res = await apiClient.post<{ success: boolean; data: any }>("/ratings", backendPayload);
       return res.data;
     } catch (err) {
-      console.warn("Backend rating endpoint unavailable, submitting rating in UI mode:", payload);
-      return { success: true, data: payload };
+      console.error("Backend rating submission failed:", err);
+      throw err;
     }
   },
 };

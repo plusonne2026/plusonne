@@ -122,7 +122,7 @@ export default function AdminCategoriesPage() {
   );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6 font-outfit">
+    <div className="p-6 w-full mx-auto space-y-6 font-outfit">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white flex items-center gap-3">

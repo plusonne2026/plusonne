@@ -6,6 +6,9 @@ import {
   ExternalLink,
   Sparkles,
   Database,
+  AlertCircle,
+  Map,
+  Banknote,
   type LucideIcon,
 } from "lucide-react";
 import type { NavGroupProps } from "@/components/admin/nav-group";
@@ -50,6 +53,21 @@ export const sidebarData: SidebarData = {
           title: "Dashboard Overview",
           url: "/admin/dashboard",
           icon: LayoutDashboard,
+        },
+        {
+          title: "SOS Operations",
+          url: "/admin/sos",
+          icon: AlertCircle,
+        },
+        {
+          title: "Global GPS Map",
+          url: "/admin/map",
+          icon: Map,
+        },
+        {
+          title: "Finance & Payouts",
+          url: "/admin/finance",
+          icon: Banknote,
         },
         {
           title: "Host Network & KYC",

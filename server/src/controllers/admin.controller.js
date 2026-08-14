@@ -126,6 +126,55 @@ class AdminController {
       next(err);
     }
   }
+
+  /**
+   * GET /api/v1/admin/sessions/active
+   */
+  static async getActiveSessions(req, res, next) {
+    try {
+      const sessions = await AdminService.getActiveSessions();
+      return res.status(200).json({
+        success: true,
+        count: sessions.length,
+        data: sessions,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/v1/admin/finance/payouts
+   */
+  static async getPendingPayouts(req, res, next) {
+    try {
+      const payouts = await AdminService.getPendingPayouts();
+      return res.status(200).json({
+        success: true,
+        count: payouts.length,
+        data: payouts,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * POST /api/v1/admin/finance/payouts/:bookingId/process
+   */
+  static async processPayout(req, res, next) {
+    try {
+      const { bookingId } = req.params;
+      const updated = await AdminService.processPayout(bookingId);
+      return res.status(200).json({
+        success: true,
+        message: "Payout processed successfully",
+        data: updated,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = AdminController;

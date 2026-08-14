@@ -12,6 +12,8 @@ import {
   auth,
 } from "../firebase/config";
 import { ConfirmationResult, RecaptchaVerifier } from "firebase/auth";
+import { requestNotificationPermission, registerFcmTokenWithBackend, onForegroundMessage } from "../firebase/fcm";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
@@ -48,6 +50,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           try {
             const profile = await AuthAPI.getProfile(storedUserId);
             setUser(profile);
+            setupFCM();
           } catch (err) {
             console.warn("Failed to refresh session from backend, clearing local storage.", err);
             localStorage.removeItem("plusone_auth_token");
@@ -64,11 +67,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     initSession();
   }, []);
 
+  const setupFCM = async () => {
+    try {
+      const fcmToken = await requestNotificationPermission();
+      if (fcmToken) {
+        await registerFcmTokenWithBackend(fcmToken);
+      }
+      onForegroundMessage((payload) => {
+        toast.info(payload.notification?.title || "Notification", {
+          description: payload.notification?.body,
+        });
+      });
+    } catch (err) {
+      console.warn("FCM setup failed", err);
+    }
+  };
+
   const saveSession = (userId: string, idToken: string, profile: User) => {
     localStorage.setItem("plusone_auth_token", idToken);
     localStorage.setItem("plusone_user_id", userId);
     setToken(idToken);
     setUser(profile);
+    setupFCM();
   };
 
   const loginWithGoogle = async () => {

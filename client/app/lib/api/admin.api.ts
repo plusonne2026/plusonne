@@ -137,4 +137,32 @@ export const AdminAPI = {
   creditUserUnits: async (userId: string, hoursAmount: number, kmAmount: number): Promise<any> => {
     return apiClient.post<{ success: boolean; data: any }>(`/admin/users/${userId}/credit-units`, { hoursAmount, kmAmount });
   },
+
+  // ================= SOS ================= //
+  getActiveSOSAlerts: async (): Promise<any[]> => {
+    const res = await apiClient.get<{ success: boolean; data: any[] }>("/sos/active");
+    return res.data;
+  },
+
+  updateSOSStatus: async (alertId: string, payload: any): Promise<any> => {
+    const res = await apiClient.put<{ success: boolean; data: any }>(`/sos/${alertId}/status`, payload);
+    return res.data;
+  },
+
+  // ================= GPS ================= //
+  getActiveSessions: async (): Promise<any[]> => {
+    const res = await apiClient.get<{ success: boolean; data: any[] }>("/admin/sessions/active");
+    return res.data;
+  },
+
+  // ================= FINANCE ================= //
+  getPendingPayouts: async (): Promise<any[]> => {
+    const res = await apiClient.get<{ success: boolean; data: any[] }>("/admin/finance/payouts");
+    return res.data;
+  },
+
+  processPayout: async (bookingId: string): Promise<any> => {
+    const res = await apiClient.post<{ success: boolean; data: any }>(`/admin/finance/payouts/${bookingId}/process`, {});
+    return res.data;
+  },
 };

@@ -181,6 +181,26 @@ class HostService {
       );
     }
 
+    // Notify Host via FCM
+    try {
+      const FCMClient = require('../clients/fcm.client');
+      const user = await DynamoDBHelper.getItem(USERS_TABLE, { userId: hostId });
+      if (user && user.fcmToken) {
+        let title = "Host Application Update";
+        let body = `Your KYC status is now ${kycStatus}.`;
+        if (kycStatus === "verified") {
+          title = "Host Verified! 🎉";
+          body = "Congratulations, your host application has been approved.";
+        } else if (kycStatus === "rejected") {
+          title = "Host Application Rejected";
+          body = `Reason: ${rejectionReason || "Please check your documents."}`;
+        }
+        await FCMClient.sendPushNotification(user.fcmToken, title, body, { type: "kyc" });
+      }
+    } catch (err) {
+      console.error("Failed to send KYC FCM to host:", err);
+    }
+
     return updatedHost;
   }
 

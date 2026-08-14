@@ -7,6 +7,7 @@ const PACKAGES_TABLE = config.tables.packages;
 const HOSTS_TABLE = config.tables.hosts;
 
 const UnitService = require("./unit.service");
+const FCMClient = require("../clients/fcm.client");
 
 class BookingService {
   static async createBooking(userId, payload) {
@@ -44,7 +45,7 @@ class BookingService {
     const booking = {
       bookingId,
       userId,
-      hostId: null, // assigned later or picked from matching
+      hostId: payload.hostId || null, // assigned later or picked from matching
       ...payload,
       status, 
       price,
@@ -54,6 +55,24 @@ class BookingService {
     };
 
     await DynamoDBHelper.putItem(BOOKINGS_TABLE, booking);
+
+    // Notify Host if assigned
+    if (booking.hostId) {
+      try {
+        const hostUser = await DynamoDBHelper.getItem(config.tables.users, { userId: booking.hostId });
+        if (hostUser && hostUser.fcmToken) {
+          await FCMClient.sendPushNotification(
+            hostUser.fcmToken,
+            "New Booking Request!",
+            "A user has requested a session with you.",
+            { type: "booking_request", bookingId }
+          );
+        }
+      } catch (err) {
+        console.error("Failed to send FCM to host:", err);
+      }
+    }
+
     return booking;
   }
 
@@ -172,6 +191,36 @@ class BookingService {
       expressionAttributeNames,
       expressionAttributeValues
     );
+
+    // Notify User
+    if (updated && updated.userId) {
+      try {
+        const user = await DynamoDBHelper.getItem(config.tables.users, { userId: updated.userId });
+        if (user && user.fcmToken) {
+          let title = "Booking Update";
+          let body = `Your booking status changed to ${dbStatus}`;
+          
+          if (dbStatus === "host_confirmed") {
+            title = "Host Assigned!";
+            body = "A host has confirmed your booking.";
+          } else if (dbStatus === "active") {
+            title = "Session Started";
+            body = "Your session is now active.";
+          } else if (dbStatus === "completed") {
+            title = "Session Completed";
+            body = "Your session has ended. Please leave a rating.";
+          } else if (dbStatus === "cancelled") {
+            title = "Booking Cancelled";
+            body = "Your booking was cancelled.";
+          }
+
+          await FCMClient.sendPushNotification(user.fcmToken, title, body, { type: "booking_update", bookingId });
+        }
+      } catch (err) {
+        console.error("Failed to send FCM to user:", err);
+      }
+    }
+
     return updated;
   }
 

@@ -35,7 +35,7 @@ class UnitService {
 
     const UpdateExpression = "ADD hoursBalance :h, kmBalance :k, totalHoursPurchased :h, totalKmPurchased :k SET lastUpdated = :now";
     
-    return await DynamoDBHelper.updateItem(
+    const updated = await DynamoDBHelper.updateItem(
       UNIT_BALANCES_TABLE,
       { userId },
       UpdateExpression,
@@ -46,6 +46,35 @@ class UnitService {
         ":now": now
       }
     );
+
+    // Notify User via FCM
+    try {
+      const FCMClient = require("../clients/fcm.client");
+      const USERS_TABLE = config.tables.users;
+      const user = await DynamoDBHelper.getItem(USERS_TABLE, { userId });
+      
+      if (user && user.fcmToken) {
+        if (Number(hoursAmount) < 0 && updated && updated.hoursBalance <= 2) {
+          await FCMClient.sendPushNotification(
+            user.fcmToken,
+            "Low Wallet Balance",
+            `You have ${updated.hoursBalance} hours left. Please top up soon!`,
+            { type: "wallet" }
+          );
+        } else if (Number(hoursAmount) > 0 && updated) {
+          await FCMClient.sendPushNotification(
+            user.fcmToken,
+            "Wallet Recharged",
+            `Successfully added ${hoursAmount} hours. New balance: ${updated.hoursBalance} hours.`,
+            { type: "wallet" }
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Failed to send wallet FCM:", err);
+    }
+
+    return updated;
   }
 }
 

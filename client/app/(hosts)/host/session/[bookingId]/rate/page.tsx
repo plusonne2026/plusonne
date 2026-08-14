@@ -88,13 +88,14 @@ export default function PostSessionRatingPage({
         cooperation,
         reviewText,
       });
-    } catch (err: any) {
-      console.warn("API submission fallback handled in UI mode:", err);
-    } finally {
       setSubmitted(true);
       setTimeout(() => {
         router.push("/host/dashboard");
       }, 2000);
+    } catch (err: any) {
+      console.error("API submission failed:", err);
+      setErrorMsg(err?.response?.data?.error || "Failed to submit rating. Please try again.");
+    } finally {
       setSubmitting(false);
     }
   };

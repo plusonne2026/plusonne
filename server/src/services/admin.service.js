@@ -177,6 +177,46 @@ class AdminService {
       { ":role": role, ":now": now }
     );
   }
+
+  /**
+   * Get all active sessions (bookings with status = 'active')
+   */
+  static async getActiveSessions() {
+    const params = {
+      TableName: config.tables.bookings,
+      FilterExpression: "#status = :status",
+      ExpressionAttributeNames: { "#status": "status" },
+      ExpressionAttributeValues: { ":status": "active" }
+    };
+    return await DynamoDBHelper.scanItems(params);
+  }
+
+  /**
+   * Get all pending payouts (bookings with status = 'completed' and payoutStatus != 'processed')
+   */
+  static async getPendingPayouts() {
+    const params = {
+      TableName: config.tables.bookings,
+      FilterExpression: "#status = :status AND (attribute_not_exists(payoutStatus) OR payoutStatus <> :payoutStatus)",
+      ExpressionAttributeNames: { "#status": "status" },
+      ExpressionAttributeValues: { ":status": "completed", ":payoutStatus": "processed" }
+    };
+    return await DynamoDBHelper.scanItems(params);
+  }
+
+  /**
+   * Process payout for a booking
+   */
+  static async processPayout(bookingId) {
+    const now = new Date().toISOString();
+    return await DynamoDBHelper.updateItem(
+      config.tables.bookings,
+      { bookingId },
+      "SET payoutStatus = :processed, payoutDate = :now, updatedAt = :now",
+      {},
+      { ":processed": "processed", ":now": now }
+    );
+  }
 }
 
 module.exports = AdminService;

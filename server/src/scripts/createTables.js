@@ -289,6 +289,74 @@ async function createPaymentsTable() {
   }
 }
 
+async function createRatingsTable() {
+  const tableName = config.tables.ratings;
+  try {
+    const existing = await dynamoDbClient.send(new ListTablesCommand({}));
+    if (existing.TableNames?.includes(tableName)) {
+      console.log(`✅ Table "${tableName}" already exists.`);
+      return;
+    }
+    const params = {
+      TableName: tableName,
+      KeySchema: [{ AttributeName: "ratingId", KeyType: "HASH" }],
+      AttributeDefinitions: [
+        { AttributeName: "ratingId", AttributeType: "S" },
+        { AttributeName: "bookingId", AttributeType: "S" },
+        { AttributeName: "targetUserId", AttributeType: "S" },
+      ],
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: "BookingIndex",
+          KeySchema: [{ AttributeName: "bookingId", KeyType: "HASH" }],
+          Projection: { ProjectionType: "ALL" },
+        },
+        {
+          IndexName: "TargetUserIndex",
+          KeySchema: [{ AttributeName: "targetUserId", KeyType: "HASH" }],
+          Projection: { ProjectionType: "ALL" },
+        }
+      ],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDbClient.send(new CreateTableCommand(params));
+    console.log(`🎉 Successfully created table "${tableName}"!`);
+  } catch (err) {
+    console.error(`❌ Failed to create table ${tableName}:`, err);
+  }
+}
+
+async function createSosAlertsTable() {
+  const tableName = config.tables.sosAlerts;
+  try {
+    const existing = await dynamoDbClient.send(new ListTablesCommand({}));
+    if (existing.TableNames?.includes(tableName)) {
+      console.log(`✅ Table "${tableName}" already exists.`);
+      return;
+    }
+    const params = {
+      TableName: tableName,
+      KeySchema: [{ AttributeName: "alertId", KeyType: "HASH" }],
+      AttributeDefinitions: [
+        { AttributeName: "alertId", AttributeType: "S" },
+        { AttributeName: "status", AttributeType: "S" },
+      ],
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: "StatusIndex",
+          KeySchema: [{ AttributeName: "status", KeyType: "HASH" }],
+          Projection: { ProjectionType: "ALL" },
+        }
+      ],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDbClient.send(new CreateTableCommand(params));
+    console.log(`🎉 Successfully created table "${tableName}"!`);
+  } catch (err) {
+    console.error(`❌ Failed to create table ${tableName}:`, err);
+  }
+}
+
 async function main() {
   await createUsersTable();
   await createHostsTable();
@@ -299,6 +367,8 @@ async function main() {
   await createPackagesTable();
   await createBookingsTable();
   await createPaymentsTable();
+  await createRatingsTable();
+  await createSosAlertsTable();
 }
 
 main();

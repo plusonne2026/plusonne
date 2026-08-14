@@ -22,6 +22,7 @@ import Link from "next/link";
 import LiveSessionMap from "@/app/components/session/LiveSessionMap";
 import SOSOverlay from "@/app/components/ui/SOSOverlay";
 import LiveChatModal from "@/app/components/session/LiveChatModal";
+import RatingModal from "@/app/components/session/RatingModal";
 
 export default function BookingDetailsPage() {
   const { bookingId } = useParams();
@@ -32,6 +33,7 @@ export default function BookingDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [showSOSOverlay, setShowSOSOverlay] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
   
   const handleTriggerSOS = async () => {
     try {
@@ -76,6 +78,12 @@ export default function BookingDetailsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (booking?.status === "completed" && !booking.isRated) {
+      setShowRatingModal(true);
+    }
+  }, [booking?.status, booking?.isRated]);
 
   const hasHostAssigned = ["accepted", "host_confirmed", "active", "in_session", "completed"].includes(booking?.status || "");
 
@@ -260,14 +268,23 @@ export default function BookingDetailsPage() {
       )}
 
       {booking && (
-        <LiveChatModal 
-          isOpen={showChatModal}
-          onClose={() => setShowChatModal(false)}
-          bookingId={bookingId as string}
-          currentUserId={localStorage.getItem("userId") || "user_unknown"}
-          currentUserName={booking.clientName || "User"}
-          otherPartyName={booking.hostName || "Host"}
-        />
+        <>
+          <LiveChatModal 
+            isOpen={showChatModal}
+            onClose={() => setShowChatModal(false)}
+            bookingId={bookingId as string}
+            currentUserId={localStorage.getItem("userId") || "user_unknown"}
+            currentUserName={booking.clientName || "User"}
+            otherPartyName={booking.hostName || "Host"}
+          />
+          <RatingModal
+            isOpen={showRatingModal}
+            onClose={() => setShowRatingModal(false)}
+            bookingId={bookingId as string}
+            hostId={booking.hostId || ""}
+            hostName={booking.hostName || "Host"}
+          />
+        </>
       )}
     </div>
   );

@@ -57,8 +57,12 @@ router.get("/health", async (req, res) => {
   });
 });
 
+const userRoutes = require("./user.routes");
+const ratingRoutes = require("./rating.routes");
+
 // Mount modular routes
 router.use("/auth", authRoutes);
+router.use("/users", userRoutes);
 router.use("/hosts", hostRoutes);
 router.use("/media", mediaRoutes);
 router.use("/admin", adminRoutes);
@@ -71,5 +75,6 @@ router.use("/payments", paymentRoutes);
 router.use("/sessions", sessionRoutes);
 router.use("/sos", sosRoutes);
 router.use("/chats", chatRoutes);
+router.use("/ratings", ratingRoutes);
 
 module.exports = router;

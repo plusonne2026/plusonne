@@ -87,4 +87,26 @@ router.get("/users/:userId/balance", AdminUnitController.getUserBalance);
  */
 router.post("/users/:userId/credit-units", AdminUnitController.creditUserUnits);
 
+// ================= GPS & SOS ================= //
+
+/**
+ * @route   GET /api/v1/admin/sessions/active
+ * @desc    Get all active sessions for global GPS monitoring
+ */
+router.get("/sessions/active", AdminController.getActiveSessions);
+
+// ================= FINANCE ================= //
+
+/**
+ * @route   GET /api/v1/admin/finance/payouts
+ * @desc    Get all pending payouts
+ */
+router.get("/finance/payouts", AdminController.getPendingPayouts);
+
+/**
+ * @route   POST /api/v1/admin/finance/payouts/:bookingId/process
+ * @desc    Process payout for a booking
+ */
+router.post("/finance/payouts/:bookingId/process", AdminController.processPayout);
+
 module.exports = router;
