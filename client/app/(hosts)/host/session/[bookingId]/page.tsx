@@ -84,7 +84,7 @@ export default function ActiveSessionPage({
       }
       
       // Auto-start session if entering this page and not started
-      if (data.status !== "in_session" && data.status !== "completed") {
+      if (data.status !== "active" && data.status !== "completed") {
         try {
           await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions/${bookingId}/start`, {
             method: 'POST',
@@ -93,8 +93,8 @@ export default function ActiveSessionPage({
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           });
-          BookingAPI.updateStatus(bookingId, "in_session").catch(() => {});
-          pushBookingStatusRealtime(bookingId, "in_session").catch(() => {});
+          BookingAPI.updateStatus(bookingId, "active").catch(() => {});
+          pushBookingStatusRealtime(bookingId, "active").catch(() => {});
         } catch (err) {
           console.error("Failed to start session on backend", err);
         }
@@ -112,7 +112,7 @@ export default function ActiveSessionPage({
         duration: "2 Hours",
         payout: 1499,
         location: "Starbucks, Bandra West, Mumbai",
-        status: "in_session",
+        status: "active",
       });
     }
     setLoading(false);
