@@ -134,7 +134,70 @@ export default function UserHomePage() {
   }
 
   const displayName = user?.displayName || user?.email?.split("@")[0] || "Guest";
-  const userCity = user?.city || "Mumbai";
+  const [userCity, setUserCity] = useState<string>("Mumbai");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("plusonne_user_location");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.city) {
+          setUserCity(parsed.city);
+          return;
+        }
+      }
+    } catch {
+      // ignore
+    }
+    if (user?.city) {
+      setUserCity(user.city);
+    }
+  }, [user]);
+
+  const [detectingLoc, setDetectingLoc] = useState(false);
+
+  const handleUpdateLocation = () => {
+    setDetectingLoc(true);
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          try {
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/geocode/reverse?lat=${lat}&lng=${lng}`
+            );
+            const res = await response.json();
+            if (res.success && res.data && res.data.address) {
+              const detectedCity = res.data.address.city || res.data.address.state_district || res.data.address.county || "Detected Location";
+              setUserCity(detectedCity);
+              localStorage.setItem(
+                "plusonne_user_location",
+                JSON.stringify({ city: detectedCity, isGps: true })
+              );
+              if (user?.userId) {
+                fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/users/${user.userId}`, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                  },
+                  body: JSON.stringify({ city: detectedCity, coordinates: { lat, lng } })
+                }).catch(() => {});
+              }
+            }
+          } catch (error) {
+            console.error(error);
+          } finally {
+            setDetectingLoc(false);
+          }
+        },
+        () => setDetectingLoc(false)
+      );
+    } else {
+      setDetectingLoc(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#07090E] text-slate-100 font-outfit relative overflow-hidden pb-24 md:pb-0">
@@ -176,9 +239,19 @@ export default function UserHomePage() {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="hidden md:flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-xs cursor-pointer hover:bg-white/10 transition-colors">
-              <MapPin className="w-3.5 h-3.5 text-[#0C4CD9]" />
-              <span className="text-slate-300 font-medium truncate max-w-[120px]">{userCity}</span>
+            <div 
+              onClick={handleUpdateLocation}
+              title="Click to update GPS location"
+              className="hidden md:flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-xs cursor-pointer hover:bg-white/10 transition-colors"
+            >
+              {detectingLoc ? (
+                <div className="w-3.5 h-3.5 border-2 border-[#0C4CD9] border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <MapPin className="w-3.5 h-3.5 text-[#0C4CD9]" />
+              )}
+              <span className="text-slate-300 font-medium truncate max-w-[120px]">
+                {detectingLoc ? "Detecting..." : userCity}
+              </span>
             </div>
             <button className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors relative shrink-0">
               <Bell className="w-4 h-4 text-slate-300" />

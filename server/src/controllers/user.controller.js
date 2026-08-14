@@ -54,7 +54,7 @@ const UserController = {
   updateMe: async (req, res) => {
     try {
       const userId = req.user.uid;
-      const { displayName, city, preferredLanguages, avatarUrl } = req.body;
+      const { displayName, city, preferredLanguages, avatarUrl, coordinates } = req.body;
 
       const user = await DynamoDBHelper.getItem(config.tables.users, { userId });
       if (!user) {
@@ -66,6 +66,10 @@ const UserController = {
       if (city) updates.city = city;
       if (preferredLanguages) updates.preferredLanguages = preferredLanguages;
       if (avatarUrl) updates.avatarUrl = avatarUrl;
+      if (coordinates) {
+        if (coordinates.lat !== undefined) updates.lat = coordinates.lat;
+        if (coordinates.lng !== undefined) updates.lng = coordinates.lng;
+      }
 
       // Construct UpdateExpression
       const updateExpressionParts = [];

@@ -76,5 +76,7 @@ router.use("/sessions", sessionRoutes);
 router.use("/sos", sosRoutes);
 router.use("/chats", chatRoutes);
 router.use("/ratings", ratingRoutes);
+const geocodeRoutes = require("./geocode.routes");
+router.use("/geocode", geocodeRoutes);
 
 module.exports = router;

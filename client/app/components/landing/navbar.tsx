@@ -60,9 +60,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
   // Detect user location via IP address (no browser permission prompt needed)
-  const detectUserLocation = useCallback(async (isUserAction: boolean = false) => {
-    setIsLocating(true);
-
+  const detectUserLocation = useCallback(async () => {
     try {
       // 1. Try ipapi.co
       let res = await fetch("https://ipapi.co/json/").catch(() => null);
@@ -71,11 +69,7 @@ export default function Navbar() {
         const city = data.city || data.region || data.country_name;
         if (city) {
           setSelectedCity(city);
-          setIsGpsLocation(true);
-          localStorage.setItem(
-            "plusonne_user_location",
-            JSON.stringify({ city, isGps: true })
-          );
+          setIsGpsLocation(false); // It's IP based, not accurate GPS
           return;
         }
       }
@@ -87,44 +81,68 @@ export default function Navbar() {
         const city = data.city || data.regionName;
         if (city) {
           setSelectedCity(city);
-          setIsGpsLocation(true);
-          localStorage.setItem(
-            "plusonne_user_location",
-            JSON.stringify({ city, isGps: true })
-          );
+          setIsGpsLocation(false);
           return;
         }
       }
-
-      // 3. Fallback to freeipapi.com
-      res = await fetch("https://freeipapi.com/api/json").catch(() => null);
-      if (res && res.ok) {
-        const data = await res.json();
-        const city = data.cityName || data.regionName;
-        if (city) {
-          setSelectedCity(city);
-          setIsGpsLocation(true);
-          localStorage.setItem(
-            "plusonne_user_location",
-            JSON.stringify({ city, isGps: true })
-          );
-          return;
-        }
-      }
-
-      setSelectedCity((prev) => (prev && prev !== "Mumbai" ? prev : "Mumbai"));
     } catch {
-      setSelectedCity((prev) => (prev && prev !== "Mumbai" ? prev : "Mumbai"));
-    } finally {
-      setIsLocating(false);
-      if (isUserAction) {
-        setIsCityDropdownOpen(false);
-      }
+      // ignore
     }
   }, []);
 
+  // Actual GPS Detection (Requires Permission)
+  const handleGPSLocation = async () => {
+    setIsLocating(true);
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          try {
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/geocode/reverse?lat=${lat}&lng=${lng}`
+            );
+            const res = await response.json();
+            if (res.success && res.data && res.data.address) {
+              const detectedCity = res.data.address.city || res.data.address.state_district || res.data.address.county || "Detected Location";
+              setSelectedCity(detectedCity);
+              setIsGpsLocation(true);
+              localStorage.setItem(
+                "plusonne_user_location",
+                JSON.stringify({ city: detectedCity, isGps: true })
+              );
+            }
+          } catch (error) {
+            console.error("Geocoding failed", error);
+          } finally {
+            setIsLocating(false);
+            setIsCityDropdownOpen(false);
+          }
+        },
+        (error) => {
+          console.error("GPS error", error);
+          setIsLocating(false);
+        }
+      );
+    } else {
+      setIsLocating(false);
+    }
+  };
+
+  // Sync with User Profile
+  useEffect(() => {
+    if (user?.city) {
+      setSelectedCity(user.city);
+      localStorage.setItem(
+        "plusonne_user_location",
+        JSON.stringify({ city: user.city, isGps: true })
+      );
+    }
+  }, [user?.city]);
+
   // Initialize saved location or trigger IP location detection on mount
   useEffect(() => {
+    if (user?.city) return; // Skip if we have user city
     try {
       const saved = localStorage.getItem("plusonne_user_location");
       if (saved) {
@@ -140,8 +158,8 @@ export default function Navbar() {
     }
 
     // Auto-detect user's actual city via IP on mount
-    detectUserLocation(false);
-  }, [detectUserLocation]);
+    detectUserLocation();
+  }, [detectUserLocation, user?.city]);
 
   // Handle scroll effect for header elevation
   useEffect(() => {
@@ -258,7 +276,7 @@ export default function Navbar() {
                     <button
                       type="button"
                       disabled={isLocating}
-                      onClick={() => detectUserLocation(true)}
+                      onClick={handleGPSLocation}
                       className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-gradient-to-r from-orange-500/10 via-rose-500/10 to-purple-500/10 hover:from-orange-500/20 hover:via-rose-500/20 hover:to-purple-500/20 border border-orange-500/20 text-xs font-semibold text-white transition-all group"
                     >
                       {isLocating ? (

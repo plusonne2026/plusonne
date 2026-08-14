@@ -37,17 +37,12 @@ function BookingDetailsContent() {
           
           try {
             const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
-              {
-                headers: {
-                  "Accept-Language": "en"
-                }
-              }
+              `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/geocode/reverse?lat=${lat}&lng=${lng}`
             );
-            const data = await response.json();
+            const res = await response.json();
             
-            if (data && data.display_name) {
-              setLocation(data.display_name);
+            if (res.success && res.data && res.data.display_name) {
+              setLocation(res.data.display_name);
             } else {
               setLocation(`Current GPS Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
             }

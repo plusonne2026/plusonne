@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Camera,
   AlertCircle,
+  Navigation,
 } from "lucide-react";
 
 const INDIAN_CITIES = [
@@ -63,6 +64,9 @@ export default function CompleteProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string>(AVATAR_PRESETS[0]);
   const [customAvatarUrl, setCustomAvatarUrl] = useState<string>("");
 
+  const [coordinates, setCoordinates] = useState<{lat: number, lng: number} | null>(null);
+  const [detecting, setDetecting] = useState<boolean>(false);
+
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -90,6 +94,42 @@ export default function CompleteProfilePage() {
     }
   };
 
+  const handleDetectLocation = () => {
+    setDetecting(true);
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          setCoordinates({ lat, lng });
+          
+          try {
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/geocode/reverse?lat=${lat}&lng=${lng}`
+            );
+            const res = await response.json();
+            
+            if (res.success && res.data && res.data.address) {
+              const detectedCity = res.data.address.city || res.data.address.state_district || res.data.address.county || "Detected Location";
+              setCity(detectedCity);
+            }
+          } catch (error) {
+            console.error("Error fetching address:", error);
+            setCity("GPS Location");
+          } finally {
+            setDetecting(false);
+          }
+        },
+        (error) => {
+          console.error(error);
+          setDetecting(false);
+        }
+      );
+    } else {
+      setDetecting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.userId) {
@@ -111,6 +151,7 @@ export default function CompleteProfilePage() {
         displayName: displayName.trim(),
         avatarUrl: finalAvatar,
         city,
+        coordinates: coordinates || undefined,
         preferredLanguages: selectedLanguages,
       });
 
@@ -250,10 +291,39 @@ export default function CompleteProfilePage() {
 
           {/* Section 3: City Selection */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#0098FF]" />
-              <span>Select Current City</span>
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-[#0098FF]" />
+                <span>Select Current City</span>
+              </label>
+              <button
+                type="button"
+                onClick={handleDetectLocation}
+                disabled={detecting}
+                className="text-xs font-bold text-[#0098FF] hover:text-[#1C7AFF] flex items-center gap-1.5 transition-colors disabled:opacity-50"
+              >
+                {detecting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Detecting...
+                  </>
+                ) : (
+                  <>
+                    <Navigation className="w-3.5 h-3.5" />
+                    Detect My Location
+                  </>
+                )}
+              </button>
+            </div>
+            
+            {/* Display detected city explicitly if not in the common list */}
+            {!INDIAN_CITIES.includes(city) && city && (
+              <div className="mb-2.5 p-3 rounded-xl bg-[#0098FF]/10 border border-[#0098FF]/30 flex items-center justify-between">
+                <span className="text-sm font-bold text-white">{city}</span>
+                <span className="text-xs text-[#0098FF]">Detected GPS</span>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {INDIAN_CITIES.map((c) => (
                 <button

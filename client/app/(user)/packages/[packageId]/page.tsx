@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { PackagesAPI, Package } from "../../../lib/api/packages.api";
 import { PaymentAPI } from "../../../lib/api/payment.api";
 import { useAuth } from "../../../lib/context/AuthContext";
-import { Calendar, MapPin, Loader2, Star, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Calendar, MapPin, Loader2, Star, ShieldCheck, CheckCircle2, Navigation } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "../../../lib/api/client";
@@ -34,6 +34,45 @@ export default function PackageDetailsPage({ params }: { params: Promise<{ packa
   const [scheduledTime, setScheduledTime] = useState("");
   const [pickupLocation, setPickupLocation] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
+  const [detecting, setDetecting] = useState(false);
+
+  const handleDetectLocation = () => {
+    setDetecting(true);
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          try {
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/geocode/reverse?lat=${lat}&lng=${lng}`
+            );
+            const res = await response.json();
+            if (res.success && res.data && res.data.display_name) {
+              setPickupLocation(res.data.display_name);
+            } else if (res.success && res.data && res.data.address) {
+              const detectedCity = res.data.address.city || res.data.address.state_district || "Detected Location";
+              setPickupLocation(`Current Location, ${detectedCity}`);
+            } else {
+              setPickupLocation(`Current GPS Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+            }
+          } catch (error) {
+            console.error(error);
+            toast.error("Failed to detect address.");
+          } finally {
+            setDetecting(false);
+          }
+        },
+        () => {
+          toast.error("Location permission denied.");
+          setDetecting(false);
+        }
+      );
+    } else {
+      setDetecting(false);
+      toast.error("Geolocation is not supported by your browser.");
+    }
+  };
 
   useEffect(() => {
     const fetchPackage = async () => {
@@ -160,7 +199,18 @@ export default function PackageDetailsPage({ params }: { params: Promise<{ packa
                 </div>
               </div>
               <div className="mb-4">
-                <label className="block text-xs font-bold text-slate-400 mb-1.5">Pickup Location</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-400">Pickup Location</label>
+                  <button 
+                    type="button"
+                    onClick={handleDetectLocation}
+                    disabled={detecting}
+                    className="text-xs font-bold text-[#0098FF] hover:text-white flex items-center gap-1 transition-colors disabled:opacity-50"
+                  >
+                    {detecting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Navigation className="w-3 h-3" />}
+                    {detecting ? "Detecting..." : "Detect Location"}
+                  </button>
+                </div>
                 <input 
                   type="text" 
                   placeholder="Enter full address or landmark"
