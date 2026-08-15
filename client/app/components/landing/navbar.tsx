@@ -47,7 +47,7 @@ const CITIES = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [selectedCity, setSelectedCity] = useState<string>("Mumbai");
+  const [selectedCity, setSelectedCity] = useState<string>("Select City");
   const [isGpsLocation, setIsGpsLocation] = useState<boolean>(false);
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState<boolean>(false);
@@ -59,39 +59,10 @@ export default function Navbar() {
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
-  // Detect user location via IP address (no browser permission prompt needed)
-  const detectUserLocation = useCallback(async () => {
-    try {
-      // 1. Try ipapi.co
-      let res = await fetch("https://ipapi.co/json/").catch(() => null);
-      if (res && res.ok) {
-        const data = await res.json();
-        const city = data.city || data.region || data.country_name;
-        if (city) {
-          setSelectedCity(city);
-          setIsGpsLocation(false); // It's IP based, not accurate GPS
-          return;
-        }
-      }
 
-      // 2. Fallback to ip-api.com
-      res = await fetch("https://ip-api.com/json/").catch(() => null);
-      if (res && res.ok) {
-        const data = await res.json();
-        const city = data.city || data.regionName;
-        if (city) {
-          setSelectedCity(city);
-          setIsGpsLocation(false);
-          return;
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
 
   // Actual GPS Detection (Requires Permission)
-  const handleGPSLocation = async () => {
+  const handleGPSLocation = useCallback(async () => {
     setIsLocating(true);
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -127,7 +98,7 @@ export default function Navbar() {
     } else {
       setIsLocating(false);
     }
-  };
+  }, []);
 
   // Sync with User Profile
   useEffect(() => {
@@ -140,7 +111,7 @@ export default function Navbar() {
     }
   }, [user?.city]);
 
-  // Initialize saved location or trigger IP location detection on mount
+  // Initialize saved location on mount
   useEffect(() => {
     if (user?.city) return; // Skip if we have user city
     try {
@@ -157,9 +128,9 @@ export default function Navbar() {
       // Ignore JSON parse errors
     }
 
-    // Auto-detect user's actual city via IP on mount
-    detectUserLocation();
-  }, [detectUserLocation, user?.city]);
+    // Auto-fetch GPS location if not saved
+    handleGPSLocation();
+  }, [user?.city, handleGPSLocation]);
 
   // Handle scroll effect for header elevation
   useEffect(() => {
