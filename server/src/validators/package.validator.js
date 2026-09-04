@@ -1,7 +1,7 @@
 const Joi = require("joi");
 
 const createPackageSchema = Joi.object({
-  packageId: Joi.string().required(),
+  packageId: Joi.string().optional(),
   categoryId: Joi.string().required(),
   name: Joi.string().required(),
   description: Joi.string().required(),

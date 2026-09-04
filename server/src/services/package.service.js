@@ -1,14 +1,12 @@
 const DynamoDBHelper = require("../clients/dynamodb.client");
 const config = require("../config/env");
+const { formatPackageModel } = require("../models/package.model");
 
 const PACKAGES_TABLE = config.tables.packages;
 
 class PackageService {
   static async createPackage(payload) {
-    const pkg = {
-      ...payload,
-      createdAt: new Date().toISOString(),
-    };
+    const pkg = formatPackageModel(payload);
     await DynamoDBHelper.putItem(PACKAGES_TABLE, pkg);
     return pkg;
   }

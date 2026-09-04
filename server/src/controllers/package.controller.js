@@ -1,5 +1,6 @@
 const PackageService = require("../services/package.service");
 const { createPackageSchema, updatePackageSchema } = require("../validators/package.validator");
+const { toPackageDto, toPackageListDto } = require("../dto/package.dto");
 
 class PackageController {
   /**
@@ -17,12 +18,14 @@ class PackageController {
         });
       }
 
-      const existing = await PackageService.getPackageById(value.packageId);
-      if (existing) {
-        return res.status(409).json({
-          success: false,
-          message: "Package with this ID already exists",
-        });
+      if (value.packageId) {
+        const existing = await PackageService.getPackageById(value.packageId);
+        if (existing) {
+          return res.status(409).json({
+            success: false,
+            message: "Package with this ID already exists",
+          });
+        }
       }
 
       const pkg = await PackageService.createPackage(value);
@@ -30,7 +33,7 @@ class PackageController {
       return res.status(201).json({
         success: true,
         message: "Package created successfully",
-        data: pkg,
+        data: toPackageDto(pkg),
       });
     } catch (err) {
       next(err);
@@ -51,7 +54,7 @@ class PackageController {
 
       return res.status(200).json({
         success: true,
-        data: packages,
+        data: toPackageListDto(packages),
       });
     } catch (err) {
       next(err);
@@ -76,7 +79,7 @@ class PackageController {
 
       return res.status(200).json({
         success: true,
-        data: pkg,
+        data: toPackageDto(pkg),
       });
     } catch (err) {
       next(err);
@@ -109,11 +112,12 @@ class PackageController {
       }
 
       const updated = await PackageService.updatePackage(packageId, value);
+      const merged = { ...pkg, ...updated, ...value };
 
       return res.status(200).json({
         success: true,
         message: "Package updated successfully",
-        data: { packageId, ...updated },
+        data: toPackageDto(merged),
       });
     } catch (err) {
       next(err);
