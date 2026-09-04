@@ -51,6 +51,21 @@ class AuthService {
   }
 
   /**
+   * Get user by email address
+   */
+  static async getUserByEmail(email) {
+    const scanParams = {
+      TableName: TABLE_NAME,
+      FilterExpression: "email = :email",
+      ExpressionAttributeValues: {
+        ":email": email,
+      },
+    };
+    const items = await DynamoDBHelper.scanItems(scanParams);
+    return items.length > 0 ? items[0] : null;
+  }
+
+  /**
    * Register or login existing user
    */
   static async registerUser(payload) {
@@ -133,6 +148,53 @@ class AuthService {
     );
     adminUser.lastLoginAt = now;
     return adminUser;
+  }
+
+  /**
+   * Complete user profile (after social login)
+   */
+  static async completeProfile(userId, data) {
+    const updates = { updatedAt: new Date().toISOString() };
+    if (data.displayName) updates.displayName = data.displayName;
+    if (data.phone) updates.phone = data.phone;
+    if (data.city) updates.city = data.city;
+    if (data.avatarUrl) updates.avatarUrl = data.avatarUrl;
+    if (data.preferredLanguages) updates.preferredLanguages = data.preferredLanguages;
+    if (data.coordinates) updates.coordinates = data.coordinates;
+
+    const updateExpressionParts = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    Object.keys(updates).forEach((key) => {
+      updateExpressionParts.push(`#${key} = :${key}`);
+      expressionAttributeNames[`#${key}`] = key;
+      expressionAttributeValues[`:${key}`] = updates[key];
+    });
+
+    const updateExpression = `SET ${updateExpressionParts.join(", ")}`;
+
+    return await DynamoDBHelper.updateItem(
+      TABLE_NAME,
+      { userId },
+      updateExpression,
+      expressionAttributeNames,
+      expressionAttributeValues
+    );
+  }
+
+  /**
+   * Delete user account (soft delete: status = "deleted")
+   */
+  static async deleteAccount(userId) {
+    const now = new Date().toISOString();
+    return await DynamoDBHelper.updateItem(
+      TABLE_NAME,
+      { userId },
+      "SET #status = :status, updatedAt = :now",
+      { "#status": "status" },
+      { ":status": "deleted", ":now": now }
+    );
   }
 }
 

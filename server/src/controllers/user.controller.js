@@ -1,103 +1,132 @@
-const DynamoDBHelper = require("../clients/dynamodb.client");
-const config = require("../config/env");
+const UserService = require("../services/user.service");
+const { toFullProfile } = require("../dto/user.dto");
 
-const UserController = {
+class UserController {
   /**
-   * Get user profile
+   * GET /api/v1/users/me
+   * Get own profile (authenticated user)
    */
-  getMe: async (req, res) => {
+  static async getMe(req, res, next) {
     try {
-      const userId = req.user.uid;
-      const user = await DynamoDBHelper.getItem(config.tables.users, { userId });
-      
-      if (!user) {
-        return res.status(404).json({ success: false, error: "User not found" });
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
       }
 
-      res.status(200).json({ success: true, data: user });
-    } catch (error) {
-      console.error("PlusOnne API Error:", error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  },
-
-  /**
-   * Save FCM Token for the user
-   */
-  updateFcmToken: async (req, res) => {
-    try {
-      const userId = req.user.uid;
-      const { fcmToken } = req.body;
-      
-      if (!fcmToken) {
-        return res.status(400).json({ success: false, error: "fcmToken is required" });
+      const user = await UserService.getUserById(userId);
+      if (!user || user.status === "deleted") {
+        return res.status(404).json({ success: false, message: "User not found" });
       }
 
-      const updatedUser = await DynamoDBHelper.updateItem(
-        config.tables.users,
-        { userId },
-        "SET fcmToken = :token, updatedAt = :now",
-        {},
-        { ":token": fcmToken, ":now": new Date().toISOString() }
-      );
-
-      res.status(200).json({ success: true, data: updatedUser });
-    } catch (error) {
-      console.error("PlusOnne API Error saving FCM Token:", error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  },
-
-  /**
-   * Update user profile
-   */
-  updateMe: async (req, res) => {
-    try {
-      const userId = req.user.uid;
-      const { displayName, city, preferredLanguages, avatarUrl, coordinates } = req.body;
-
-      const user = await DynamoDBHelper.getItem(config.tables.users, { userId });
-      if (!user) {
-        return res.status(404).json({ success: false, error: "User not found" });
-      }
-
-      const updates = { updatedAt: new Date().toISOString() };
-      if (displayName) updates.displayName = displayName;
-      if (city) updates.city = city;
-      if (preferredLanguages) updates.preferredLanguages = preferredLanguages;
-      if (avatarUrl) updates.avatarUrl = avatarUrl;
-      if (coordinates) {
-        if (coordinates.lat !== undefined) updates.lat = coordinates.lat;
-        if (coordinates.lng !== undefined) updates.lng = coordinates.lng;
-      }
-
-      // Construct UpdateExpression
-      const updateExpressionParts = [];
-      const expressionAttributeNames = {};
-      const expressionAttributeValues = {};
-
-      Object.keys(updates).forEach((key) => {
-        updateExpressionParts.push(`#${key} = :${key}`);
-        expressionAttributeNames[`#${key}`] = key;
-        expressionAttributeValues[`:${key}`] = updates[key];
+      return res.status(200).json({
+        success: true,
+        data: toFullProfile(user),
       });
-
-      const updateExpression = `SET ${updateExpressionParts.join(", ")}`;
-
-      const updatedUser = await DynamoDBHelper.updateItem(
-        config.tables.users,
-        { userId },
-        updateExpression,
-        expressionAttributeNames,
-        expressionAttributeValues
-      );
-
-      res.status(200).json({ success: true, data: updatedUser });
-    } catch (error) {
-      console.error("PlusOnne API Error:", error);
-      res.status(500).json({ success: false, error: error.message });
+    } catch (err) {
+      next(err);
     }
   }
-};
+
+  /**
+   * PUT /api/v1/users/me
+   * Update own profile
+   * Allowed fields: displayName, avatarUrl, city, coordinates, preferredLanguages
+   */
+  static async updateMe(req, res, next) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
+      }
+
+      const updatedUser = await UserService.updateProfile(userId, req.body);
+
+      return res.status(200).json({
+        success: true,
+        data: toFullProfile(updatedUser),
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/v1/users/:userId
+   * Admin only — Get any user's full profile
+   */
+  static async getUserById(req, res, next) {
+    try {
+      const { userId } = req.params;
+
+      const user = await UserService.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: toFullProfile(user),
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * PUT /api/v1/users/:userId/status
+   * Admin only — Suspend / activate / delete a user
+   * Body: { "status": "active" | "suspended" | "deleted" }
+   */
+  static async updateStatus(req, res, next) {
+    try {
+      const { userId } = req.params;
+      const { status } = req.body;
+
+      if (!status) {
+        return res.status(400).json({
+          success: false,
+          message: "status is required. Allowed: active, suspended, deleted",
+        });
+      }
+
+      const updatedUser = await UserService.updateStatus(userId, status);
+
+      return res.status(200).json({
+        success: true,
+        message: `User status updated to '${status}'`,
+        data: toFullProfile(updatedUser),
+      });
+    } catch (err) {
+      if (err.message?.startsWith("Invalid status")) {
+        return res.status(400).json({ success: false, message: err.message });
+      }
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/v1/users
+   * Admin only — List all users (paginated, filterable)
+   * Query: ?limit=20&lastKey=<base64>&role=user|host|admin&status=active|suspended|deleted
+   */
+  static async listUsers(req, res, next) {
+    try {
+      const { limit, lastKey, role, status } = req.query;
+
+      const result = await UserService.listUsers({ limit, lastKey, role, status });
+
+      return res.status(200).json({
+        success: true,
+        data: result.users.map(toFullProfile),
+        pagination: {
+          count: result.count,
+          nextKey: result.nextKey,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+}
 
 module.exports = UserController;

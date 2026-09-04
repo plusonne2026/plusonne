@@ -1,5 +1,6 @@
 const express = require("express");
 const AuthController = require("../controllers/auth.controller");
+const { authenticate } = require("../middleware/auth.middleware");
 
 const router = express.Router();
 
@@ -18,11 +19,18 @@ router.post("/register", AuthController.register);
 router.post("/verify-token", AuthController.verifyToken);
 
 /**
- * @route   GET /api/v1/auth/me
- * @desc    Get logged in user profile
- * @access  Public / Authenticated
+ * @route   POST /api/v1/auth/complete-profile
+ * @desc    Complete profile after social login (phone, city, etc.)
+ * @access  Authenticated
  */
-router.get("/me", AuthController.getProfile);
+router.post("/complete-profile", authenticate, AuthController.completeProfile);
+
+/**
+ * @route   DELETE /api/v1/auth/delete-account
+ * @desc    Delete user account (soft delete)
+ * @access  Authenticated
+ */
+router.delete("/delete-account", authenticate, AuthController.deleteAccount);
 
 /**
  * @route   POST /api/v1/auth/admin-login

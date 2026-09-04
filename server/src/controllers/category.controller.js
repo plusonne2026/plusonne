@@ -1,5 +1,6 @@
 const CategoryService = require("../services/category.service");
 const { createCategorySchema, updateCategorySchema } = require("../validators/category.validator");
+const { toCategoryDto, toCategoryListDto } = require("../dto/category.dto");
 
 class CategoryController {
   /**
@@ -31,7 +32,7 @@ class CategoryController {
       return res.status(201).json({
         success: true,
         message: "Category created successfully",
-        data: category,
+        data: toCategoryDto(category),
       });
     } catch (err) {
       next(err);
@@ -49,7 +50,7 @@ class CategoryController {
 
       return res.status(200).json({
         success: true,
-        data: categories,
+        data: toCategoryListDto(categories),
       });
     } catch (err) {
       next(err);
@@ -74,7 +75,7 @@ class CategoryController {
 
       return res.status(200).json({
         success: true,
-        data: category,
+        data: toCategoryDto(category),
       });
     } catch (err) {
       next(err);
@@ -107,11 +108,12 @@ class CategoryController {
       }
 
       const updated = await CategoryService.updateCategory(categoryId, value);
+      const merged = { ...category, ...updated, ...value };
 
       return res.status(200).json({
         success: true,
         message: "Category updated successfully",
-        data: { categoryId, ...updated },
+        data: toCategoryDto(merged),
       });
     } catch (err) {
       next(err);

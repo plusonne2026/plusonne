@@ -1,9 +1,16 @@
 const AuthService = require("../services/auth.service");
-const { registerSchema, verifyTokenSchema } = require("../validators/auth.validator");
+const { getFirebaseAuth, isFirebaseAvailable } = require("../config/firebase.config");
+const { registerSchema } = require("../validators/auth.validator");
+const { toSessionProfile, toFullProfile } = require("../dto/user.dto");
 
 class AuthController {
   /**
    * POST /api/v1/auth/register
+   *
+   * Flow:
+   * 1. idToken lo (ya bypass mode mein firebaseUid)
+   * 2. Firebase se token verify karo → uid, email, phone nikalo
+   * 3. User create ya update karo DynamoDB mein
    */
   static async register(req, res, next) {
     try {
@@ -16,20 +23,50 @@ class AuthController {
         });
       }
 
-      const { user, isNewUser } = await AuthService.registerUser(value);
+      let verifiedPayload = { ...value };
+
+      // ── PRODUCTION MODE: Firebase ID Token verify karo ──────────────────
+      if (isFirebaseAvailable && value.idToken) {
+        try {
+          const firebaseAuth = getFirebaseAuth();
+          const decodedToken = await firebaseAuth.verifyIdToken(value.idToken);
+
+          // Token se verified data lo — frontend ke data par trust mat karo
+          verifiedPayload.firebaseUid = decodedToken.uid;
+          verifiedPayload.email       = decodedToken.email         || value.email || null;
+          verifiedPayload.phone       = decodedToken.phone_number  || value.phone || null;
+          verifiedPayload.isVerified  = decodedToken.email_verified || false;
+
+          if (!verifiedPayload.avatarUrl && decodedToken.picture) {
+            verifiedPayload.avatarUrl = decodedToken.picture;
+          }
+
+          delete verifiedPayload.idToken;
+          console.log(`[AuthController] ✅ Token verified for uid: ${decodedToken.uid}`);
+        } catch (firebaseError) {
+          return res.status(401).json({
+            success: false,
+            message: "Invalid or expired Firebase ID Token.",
+            code: firebaseError.code,
+          });
+        }
+      } else if (value.firebaseUid) {
+        // ── DEV / POSTMAN BYPASS MODE ──────────────────────────────────────
+        console.warn(`[AuthController] ⚠️  DEV BYPASS: uid=${value.firebaseUid}`);
+        delete verifiedPayload.idToken;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Either idToken or firebaseUid is required.",
+        });
+      }
+
+      const { user, isNewUser } = await AuthService.registerUser(verifiedPayload);
 
       return res.status(isNewUser ? 201 : 200).json({
         success: true,
         isNewUser,
-        data: {
-          userId: user.userId,
-          email: user.email,
-          displayName: user.displayName,
-          role: user.role,
-          isVerified: user.isVerified,
-          trustScore: user.trustScore,
-          city: user.city,
-        },
+        data: toSessionProfile(user),
       });
     } catch (err) {
       next(err);
@@ -38,66 +75,62 @@ class AuthController {
 
   /**
    * POST /api/v1/auth/verify-token
+   *
+   * Flow:
+   * 1. idToken verify karo ya firebaseUid se user dhoundho (bypass)
+   * 2. User return karo
    */
   static async verifyToken(req, res, next) {
     try {
-      const { error, value } = verifyTokenSchema.validate(req.body);
-      if (error) {
+      // Header se Bearer token bhi accept karo
+      const authHeader  = req.headers["authorization"];
+      const headerToken = authHeader?.startsWith("Bearer ")
+        ? authHeader.replace("Bearer ", "").trim()
+        : null;
+
+      const bodyToken = req.body?.idToken || headerToken;
+      const firebaseUid = req.body?.firebaseUid || req.headers["x-user-id"];
+
+      let firebaseUidToLookup = firebaseUid;
+
+      // PRODUCTION: idToken verify karo (body ya header se)
+      if (isFirebaseAvailable && bodyToken) {
+        try {
+          const firebaseAuth = getFirebaseAuth();
+          const decodedToken = await firebaseAuth.verifyIdToken(bodyToken);
+          firebaseUidToLookup = decodedToken.uid;
+        } catch (firebaseError) {
+          // Local dev fallback: agar direct non-JWT uid pass kiya ho
+          if (process.env.NODE_ENV !== "production" && !firebaseUidToLookup) {
+            firebaseUidToLookup = bodyToken;
+          } else {
+            return res.status(401).json({
+              success: false,
+              message: "Invalid or expired Firebase ID Token.",
+              code: firebaseError.code,
+            });
+          }
+        }
+      }
+
+      if (!firebaseUidToLookup) {
         return res.status(400).json({
           success: false,
-          message: "Validation Error",
-          error: error.details[0].message,
+          message: "idToken or firebaseUid is required.",
         });
       }
 
-      const user = await AuthService.verifyLoginToken(value.firebaseUid);
-      if (!user) {
+      const user = await AuthService.verifyLoginToken(firebaseUidToLookup);
+      if (!user || user.status === "deleted") {
         return res.status(404).json({
           success: false,
-          message: "User not found. Please register first.",
+          message: "User account not found or has been deleted.",
         });
       }
 
       return res.status(200).json({
         success: true,
-        data: {
-          userId: user.userId,
-          email: user.email,
-          displayName: user.displayName,
-          role: user.role,
-          isVerified: user.isVerified,
-          trustScore: user.trustScore,
-        },
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  /**
-   * GET /api/v1/auth/me
-   */
-  static async getProfile(req, res, next) {
-    try {
-      const userId = req.query.userId || req.headers["x-user-id"];
-      if (!userId) {
-        return res.status(400).json({
-          success: false,
-          message: "userId is required",
-        });
-      }
-
-      const user = await AuthService.getUserById(userId);
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User profile not found",
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        data: user,
+        data: toSessionProfile(user),
       });
     } catch (err) {
       next(err);
@@ -127,8 +160,55 @@ class AuthController {
 
       return res.status(200).json({
         success: true,
-        data: user,
+        data: toFullProfile(user),
         token: `admin-token-${user.userId}`,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * POST /api/v1/auth/complete-profile
+   */
+  static async completeProfile(req, res, next) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized: User identification missing",
+        });
+      }
+
+      const updatedUser = await AuthService.completeProfile(userId, req.body);
+      return res.status(200).json({
+        success: true,
+        message: "Profile completed successfully",
+        data: toFullProfile(updatedUser),
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * DELETE /api/v1/auth/delete-account
+   */
+  static async deleteAccount(req, res, next) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized: User identification missing",
+        });
+      }
+
+      await AuthService.deleteAccount(userId);
+      return res.status(200).json({
+        success: true,
+        message: "User account deleted successfully",
       });
     } catch (err) {
       next(err);

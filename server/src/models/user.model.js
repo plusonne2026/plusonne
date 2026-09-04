@@ -16,7 +16,7 @@ function formatUserModel(payload) {
     role: payload.role || ROLES.USER,
     authProvider: payload.authProvider || "google",
     firebaseUid: payload.firebaseUid,
-    isVerified: Boolean(payload.isVerified || true),
+    isVerified: payload.isVerified === true || payload.isVerified === 'true' ? true : false,
     status: payload.status || USER_STATUS.ACTIVE,
     city: payload.city || "",
     coordinates: payload.coordinates || { lat: 0, lng: 0 },

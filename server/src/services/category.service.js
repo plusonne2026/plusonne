@@ -1,14 +1,12 @@
 const DynamoDBHelper = require("../clients/dynamodb.client");
 const config = require("../config/env");
+const { formatCategoryModel } = require("../models/category.model");
 
 const CATEGORIES_TABLE = config.tables.categories;
 
 class CategoryService {
   static async createCategory(payload) {
-    const category = {
-      ...payload,
-      createdAt: new Date().toISOString(),
-    };
+    const category = formatCategoryModel(payload);
     await DynamoDBHelper.putItem(CATEGORIES_TABLE, category);
     return category;
   }
