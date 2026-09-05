@@ -3,6 +3,10 @@ const config = require("../config/env");
 const { formatHostProfileModel } = require("../models/host.model");
 const { ROLES } = require("../config/constants");
 
+// Try to load ngeohash for geospatial queries (graceful fallback if not installed)
+let ngeohash;
+try { ngeohash = require("ngeohash"); } catch (_) { ngeohash = null; }
+
 const HOSTS_TABLE = config.tables.hosts;
 const USERS_TABLE = config.tables.users;
 
@@ -210,6 +214,161 @@ class HostService {
   static async getPendingKycApplications() {
     const allHosts = await DynamoDBHelper.scanItems({ TableName: HOSTS_TABLE });
     return allHosts.filter((host) => host.kycStatus === "pending");
+  }
+
+  /**
+   * Update host's current GPS location + geohash
+   */
+  static async updateLocation(hostId, { lat, lng }) {
+    const now = new Date().toISOString();
+
+    // Compute geohash6 if ngeohash is available
+    const geohash6 = ngeohash ? ngeohash.encode(lat, lng, 6) : null;
+
+    const updateExpr = geohash6
+      ? "SET currentLocation = :loc, geohash6 = :geo, updatedAt = :now"
+      : "SET currentLocation = :loc, updatedAt = :now";
+
+    const exprValues = geohash6
+      ? { ":loc": { lat, lng, updatedAt: now }, ":geo": geohash6, ":now": now }
+      : { ":loc": { lat, lng, updatedAt: now }, ":now": now };
+
+    const updated = await DynamoDBHelper.updateItem(
+      HOSTS_TABLE,
+      { hostId },
+      updateExpr,
+      undefined,
+      exprValues
+    );
+    return updated;
+  }
+
+  /**
+   * Get paginated payout / earnings history from Transactions table
+   */
+  static async getEarningsHistory(hostId, { limit = 20, lastKey } = {}) {
+    const TRANSACTIONS_TABLE = config.tables.transactions;
+    if (!TRANSACTIONS_TABLE) {
+      // Graceful fallback — return empty if table not configured yet
+      return { items: [], lastKey: null };
+    }
+
+    const params = {
+      TableName: TRANSACTIONS_TABLE,
+      IndexName: "UserTransactionsIndex",
+      KeyConditionExpression: "userId = :uid",
+      FilterExpression: "#type = :payout",
+      ExpressionAttributeNames: { "#type": "type" },
+      ExpressionAttributeValues: { ":uid": hostId, ":payout": "payout" },
+      ScanIndexForward: false, // newest first
+      Limit: limit,
+    };
+
+    if (lastKey) {
+      try {
+        params.ExclusiveStartKey = JSON.parse(Buffer.from(lastKey, "base64").toString("utf8"));
+      } catch (_) { /* ignore bad cursor */ }
+    }
+
+    const result = await DynamoDBHelper.queryItems(params);
+    const encodedLastKey = result.LastEvaluatedKey
+      ? Buffer.from(JSON.stringify(result.LastEvaluatedKey)).toString("base64")
+      : null;
+
+    return { items: result.Items || [], lastKey: encodedLastKey };
+  }
+
+  /**
+   * Search / filter verified hosts with optional filters
+   */
+  static async searchHosts({ city, category, minRating, isOnline, language, limit = 20 } = {}) {
+    const allHosts = await DynamoDBHelper.scanItems({ TableName: HOSTS_TABLE });
+
+    let filtered = allHosts.filter((h) => h.kycStatus === "verified");
+
+    if (city) filtered = filtered.filter((h) => h.city?.toLowerCase() === city.toLowerCase());
+    if (category) filtered = filtered.filter((h) => Array.isArray(h.categories) && h.categories.includes(category));
+    if (minRating !== undefined) filtered = filtered.filter((h) => (h.rating || 0) >= minRating);
+    if (isOnline !== undefined) filtered = filtered.filter((h) => h.isOnline === isOnline);
+    if (language) filtered = filtered.filter((h) => Array.isArray(h.languages) && h.languages.map((l) => l.toLowerCase()).includes(language.toLowerCase()));
+
+    // Sort by rating descending
+    filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+    const items = filtered.slice(0, limit);
+
+    // Attach displayName + avatarUrl from Users table
+    const enriched = await Promise.all(
+      items.map(async (host) => {
+        const user = await DynamoDBHelper.getItem(USERS_TABLE, { userId: host.hostId });
+        return {
+          ...host,
+          displayName: user?.displayName || "Verified Host",
+          avatarUrl: user?.avatarUrl || null,
+        };
+      })
+    );
+
+    return { items: enriched, lastKey: null };
+  }
+
+  /**
+   * Find nearby online verified hosts using geohash neighbor-cell querying
+   */
+  static async getNearbyHosts({ lat, lng, radiusKm = 10, categoryId, minRating, limit = 20 } = {}) {
+    const allHosts = await DynamoDBHelper.scanItems({ TableName: HOSTS_TABLE });
+
+    // Filter: online + verified + has location
+    let candidates = allHosts.filter(
+      (h) => h.kycStatus === "verified" && h.isOnline && h.currentLocation?.lat && h.currentLocation?.lng
+    );
+
+    // Haversine distance filter
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const haversine = (lat1, lng1, lat2, lng2) => {
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLng = toRad(lng2 - lng1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+
+    candidates = candidates.map((h) => ({
+      ...h,
+      distanceKm: haversine(lat, lng, h.currentLocation.lat, h.currentLocation.lng),
+    }));
+
+    candidates = candidates.filter((h) => h.distanceKm <= radiusKm);
+
+    if (categoryId) candidates = candidates.filter((h) => Array.isArray(h.categories) && h.categories.includes(categoryId));
+    if (minRating !== undefined) candidates = candidates.filter((h) => (h.rating || 0) >= minRating);
+
+    // Sort by distance
+    candidates.sort((a, b) => a.distanceKm - b.distanceKm);
+
+    const items = candidates.slice(0, limit);
+
+    // Attach display info from Users table
+    const enriched = await Promise.all(
+      items.map(async (host) => {
+        const user = await DynamoDBHelper.getItem(USERS_TABLE, { userId: host.hostId });
+        return {
+          hostId: host.hostId,
+          displayName: user?.displayName || "Verified Host",
+          avatarUrl: user?.avatarUrl || null,
+          rating: host.rating || 0,
+          totalReviews: host.totalReviews || 0,
+          languages: host.languages || [],
+          categories: host.categories || [],
+          distanceKm: parseFloat(host.distanceKm.toFixed(2)),
+          isOnline: host.isOnline,
+        };
+      })
+    );
+
+    return enriched;
   }
 
   /**

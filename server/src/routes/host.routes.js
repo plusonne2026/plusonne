@@ -6,12 +6,30 @@ const { ROLES } = require("../config/constants");
 
 const router = express.Router();
 
+// ─────────────────────────────────────────────
+// PUBLIC / SEARCH ROUTES (before /:hostId to avoid param conflict)
+// ─────────────────────────────────────────────
+
 /**
- * @route   POST /api/v1/hosts/register
- * @desc    Submit host application & promote user role to host
- * @access  Authenticated (User/Host)
+ * @route   GET /api/v1/hosts
+ * @desc    Search / filter all verified hosts
+ * @access  Authenticated (any role)
  */
-router.post("/register", authenticate, HostController.register);
+router.get("/", authenticate, HostController.searchHosts);
+
+/**
+ * @route   GET /api/v1/hosts/nearby
+ * @desc    Find nearby available hosts by geolocation
+ * @access  Authenticated (user)
+ */
+router.get("/nearby", authenticate, HostController.getNearbyHosts);
+
+/**
+ * @route   GET /api/v1/hosts/pending-kyc
+ * @desc    List all pending KYC applications
+ * @access  Authenticated (admin)
+ */
+router.get("/pending-kyc", authenticate, requireRole(ROLES.ADMIN), HostController.getPendingKyc);
 
 /**
  * @route   GET /api/v1/hosts/active
@@ -20,72 +38,97 @@ router.post("/register", authenticate, HostController.register);
  */
 router.get("/active", HostController.getActiveHosts);
 
+// ─────────────────────────────────────────────
+// HOST REGISTRATION
+// ─────────────────────────────────────────────
+
+/**
+ * @route   POST /api/v1/hosts/register
+ * @desc    Apply to become a host
+ * @access  Authenticated (user)
+ */
+router.post("/register", authenticate, HostController.register);
+
+// ─────────────────────────────────────────────
+// HOST SELF (me) ROUTES
+// ─────────────────────────────────────────────
+
 /**
  * @route   GET /api/v1/hosts/me
- * @desc    Get current host profile details
- * @access  Authenticated Host
+ * @desc    Get own host profile
+ * @access  Authenticated (host)
  */
 router.get("/me", authenticate, requireRole(ROLES.HOST), HostController.getProfile);
 
 /**
- * @route   PUT /api/v1/hosts/me/profile
- * @desc    Update basic profile info (bio, categories, languages, city)
- * @access  Authenticated Host
+ * @route   PUT /api/v1/hosts/me
+ * @desc    Update host profile (bio, categories, languages, city)
+ * @access  Authenticated (host)
  */
-router.put("/profile", authenticate, requireRole(ROLES.HOST), HostController.updateProfile);
-router.put("/me/profile", authenticate, requireRole(ROLES.HOST), HostController.updateProfile);
-
-/**
- * @route   GET /api/v1/hosts/me/earnings
- * @desc    Get earnings and payout history
- * @access  Authenticated Host
- */
-router.get("/earnings", authenticate, requireRole(ROLES.HOST), HostController.getEarnings);
-router.get("/me/earnings", authenticate, requireRole(ROLES.HOST), HostController.getEarnings);
-
-/**
- * @route   PUT /api/v1/hosts/me/bank-details
- * @desc    Add or update bank account info post-onboarding
- * @access  Authenticated Host
- */
-router.put("/bank-details", authenticate, requireRole(ROLES.HOST), HostController.updateBankDetails);
-router.put("/me/bank-details", authenticate, requireRole(ROLES.HOST), HostController.updateBankDetails);
+router.put("/me", authenticate, requireRole(ROLES.HOST), HostController.updateProfile);
 
 /**
  * @route   PUT /api/v1/hosts/me/availability
- * @desc    Update host weekly availability schedule
- * @access  Authenticated Host
+ * @desc    Set weekly availability schedule
+ * @access  Authenticated (host)
  */
-router.put("/availability", authenticate, requireRole(ROLES.HOST), HostController.updateAvailability);
 router.put("/me/availability", authenticate, requireRole(ROLES.HOST), HostController.updateAvailability);
 
 /**
- * @route   PUT /api/v1/hosts/me/status
- * @desc    Toggle online/offline status
- * @access  Authenticated Host
+ * @route   PUT /api/v1/hosts/me/toggle-online
+ * @desc    Go online / offline
+ * @access  Authenticated (host)
  */
-router.put("/me/status", authenticate, requireRole(ROLES.HOST), HostController.updateOnlineStatus);
+router.put("/me/toggle-online", authenticate, requireRole(ROLES.HOST), HostController.toggleOnlineStatus);
+
+/**
+ * @route   PUT /api/v1/hosts/me/location
+ * @desc    Update current GPS location
+ * @access  Authenticated (host)
+ */
+router.put("/me/location", authenticate, requireRole(ROLES.HOST), HostController.updateLocation);
+
+/**
+ * @route   GET /api/v1/hosts/me/earnings
+ * @desc    Get earnings summary
+ * @access  Authenticated (host)
+ */
+router.get("/me/earnings", authenticate, requireRole(ROLES.HOST), HostController.getEarnings);
+
+/**
+ * @route   GET /api/v1/hosts/me/earnings/history
+ * @desc    Get payout history (paginated)
+ * @access  Authenticated (host)
+ */
+router.get("/me/earnings/history", authenticate, requireRole(ROLES.HOST), HostController.getEarningsHistory);
 
 /**
  * @route   POST /api/v1/hosts/me/kyc
- * @desc    Upload or update KYC documents
- * @access  Authenticated Host
+ * @desc    Upload KYC documents
+ * @access  Authenticated (host)
  */
-router.post("/kyc", authenticate, requireRole(ROLES.HOST), HostController.uploadKYC);
 router.post("/me/kyc", authenticate, requireRole(ROLES.HOST), HostController.uploadKYC);
 
-/**
- * @route   GET /api/v1/hosts/pending-kyc
- * @desc    List all pending KYC applications (Admin)
- * @access  Authenticated (Admin / Dev)
- */
-router.get("/pending-kyc", authenticate, HostController.getPendingKyc);
+// ─────────────────────────────────────────────
+// ADMIN ROUTES
+// ─────────────────────────────────────────────
 
 /**
  * @route   PUT /api/v1/hosts/:hostId/kyc-status
- * @desc    Approve or reject KYC verification status
- * @access  Authenticated (Admin / Dev)
+ * @desc    Approve or reject KYC verification
+ * @access  Authenticated (admin)
  */
-router.put("/:hostId/kyc-status", authenticate, HostController.updateKycStatus);
+router.put("/:hostId/kyc-status", authenticate, requireRole(ROLES.ADMIN), HostController.updateKycStatus);
+
+// ─────────────────────────────────────────────
+// PUBLIC HOST PROFILE (must be LAST — dynamic param)
+// ─────────────────────────────────────────────
+
+/**
+ * @route   GET /api/v1/hosts/:hostId
+ * @desc    Get host public profile
+ * @access  Authenticated (any)
+ */
+router.get("/:hostId", authenticate, HostController.getHostById);
 
 module.exports = router;

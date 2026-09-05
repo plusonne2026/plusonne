@@ -9,13 +9,31 @@ const {
 const { docClient } = require("../config/dynamodb.config");
 
 /**
+ * Recursively removes null and undefined fields from an object
+ * before writing to DynamoDB (which rejects null attribute values).
+ */
+function stripNulls(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map(stripNulls);
+  }
+  if (obj !== null && typeof obj === "object") {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([, v]) => v !== null && v !== undefined)
+        .map(([k, v]) => [k, stripNulls(v)])
+    );
+  }
+  return obj;
+}
+
+/**
  * Reusable DynamoDB Client operations wrapper
  */
 class DynamoDBHelper {
   static async putItem(TableName, Item) {
     const command = new PutCommand({
       TableName,
-      Item,
+      Item: stripNulls(Item),   // DynamoDB rejects null values — strip them
     });
     await docClient.send(command);
     return Item;

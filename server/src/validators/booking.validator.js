@@ -5,13 +5,15 @@ const createBookingSchema = Joi.object({
   categoryId: Joi.string().required(),
   pricingModel: Joi.string().valid("subscription", "unit", "package").required(),
   scheduledDate: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required(), // YYYY-MM-DD
-  scheduledTime: Joi.string().pattern(/^\d{2}:\d{2}$/).required(), // HH:mm
+  scheduledTime: Joi.string().pattern(/^\d{2}:\d{2}$/).required(),        // HH:mm
   pickupLocation: Joi.object({
     lat: Joi.number().required(),
     lng: Joi.number().required(),
     address: Joi.string().required(),
+    geohash6: Joi.string().allow("", null),                               // optional, computed server-side
   }).required(),
   specialInstructions: Joi.string().allow("", null),
+  preferredHostId: Joi.string().allow(null, ""),                          // null for auto-match
   promoCode: Joi.string().allow("", null),
 });
 
