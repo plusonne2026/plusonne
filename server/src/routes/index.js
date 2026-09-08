@@ -73,6 +73,8 @@ router.use("/packages", packageRoutes);
 router.use("/bookings", bookingRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/sessions", sessionRoutes);
+const subscriptionRoutes = require("./subscription.routes");
+router.use("/subscriptions", subscriptionRoutes);
 router.use("/sos", sosRoutes);
 router.use("/chats", chatRoutes);
 router.use("/ratings", ratingRoutes);

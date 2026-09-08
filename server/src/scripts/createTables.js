@@ -392,6 +392,59 @@ async function createSessionsTable() {
   }
 }
 
+async function createSubscriptionsTable() {
+  const tableName = config.tables.subscriptions || "PlusOne_Subscriptions";
+  try {
+    const existing = await dynamoDbClient.send(new ListTablesCommand({}));
+    if (existing.TableNames?.includes(tableName)) {
+      console.log(`✅ Table "${tableName}" already exists.`);
+      return;
+    }
+    const params = {
+      TableName: tableName,
+      KeySchema: [{ AttributeName: "subscriptionId", KeyType: "HASH" }],
+      AttributeDefinitions: [
+        { AttributeName: "subscriptionId", AttributeType: "S" },
+        { AttributeName: "userId", AttributeType: "S" },
+        { AttributeName: "status", AttributeType: "S" },
+        { AttributeName: "createdAt", AttributeType: "S" },
+        { AttributeName: "endDate", AttributeType: "S" },
+      ],
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: "UserSubscriptionIndex",
+          KeySchema: [
+            { AttributeName: "userId", KeyType: "HASH" },
+            { AttributeName: "createdAt", KeyType: "RANGE" },
+          ],
+          Projection: { ProjectionType: "ALL" },
+        },
+        {
+          IndexName: "StatusEndDateIndex",
+          KeySchema: [
+            { AttributeName: "status", KeyType: "HASH" },
+            { AttributeName: "endDate", KeyType: "RANGE" },
+          ],
+          Projection: { ProjectionType: "ALL" },
+        },
+        {
+          IndexName: "UserActiveIndex",
+          KeySchema: [
+            { AttributeName: "userId", KeyType: "HASH" },
+            { AttributeName: "status", KeyType: "RANGE" },
+          ],
+          Projection: { ProjectionType: "ALL" },
+        },
+      ],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDbClient.send(new CreateTableCommand(params));
+    console.log(`🎉 Successfully created table "${tableName}"!`);
+  } catch (err) {
+    console.error(`❌ Failed to create table ${tableName}:`, err);
+  }
+}
+
 async function main() {
   await createUsersTable();
   await createHostsTable();
@@ -405,6 +458,7 @@ async function main() {
   await createRatingsTable();
   await createSosAlertsTable();
   await createSessionsTable();
+  await createSubscriptionsTable();
 }
 
 main();

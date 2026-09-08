@@ -272,6 +272,78 @@ async function seedAdminAndSampleData() {
     }
     console.log(`✅ Seeded ${sampleHosts.length} sample hosts (and their corresponding user records).`);
 
+    // 4. Seed Default Subscription Pricing Plans (Table 6)
+    const PLANS_TABLE = config.tables.pricingPlans;
+    const defaultPlans = [
+      {
+        planId: "monthly_basic",
+        name: "Monthly Basic",
+        type: "monthly",
+        price: 1999,
+        hoursIncluded: 100,
+        kmIncluded: 80,
+        overageDiscount: 15,
+        priorityBooking: false,
+        features: [
+          "100 hours included",
+          "80 KM included",
+          "15% discount on overage",
+          "Standard matching",
+        ],
+        isActive: true,
+        displayOrder: 1,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        planId: "monthly_pro",
+        name: "Monthly Pro",
+        type: "monthly",
+        price: 4499,
+        hoursIncluded: 250,
+        kmIncluded: 200,
+        overageDiscount: 20,
+        priorityBooking: true,
+        features: [
+          "250 hours included",
+          "200 KM included",
+          "20% discount on overage",
+          "Priority host matching",
+          "24/7 dedicated support",
+        ],
+        isActive: true,
+        displayOrder: 2,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        planId: "annual_premium",
+        name: "Annual Premium",
+        type: "annual",
+        price: 19999,
+        hoursIncluded: 1200,
+        kmIncluded: 1000,
+        overageDiscount: 25,
+        priorityBooking: true,
+        features: [
+          "1200 hours included",
+          "1000 KM included",
+          "25% discount on overage",
+          "VIP priority matching",
+          "Dedicated relationship manager",
+        ],
+        isActive: true,
+        displayOrder: 3,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ];
+
+    for (const plan of defaultPlans) {
+      await DynamoDBClient.putItem(PLANS_TABLE, plan);
+    }
+    console.log(`✅ Seeded ${defaultPlans.length} subscription pricing plans into ${PLANS_TABLE}.`);
+
     console.log(`\n🎉 SEEDING COMPLETED SUCCESSFULLY!`);
     console.log(`=======================================================`);
     console.log(`🔑 ADMIN LOGIN CREDENTIALS:`);

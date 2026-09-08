@@ -23,6 +23,7 @@ const config = {
     ratings: process.env.DYNAMODB_TABLE_RATINGS || "PlusOne_Ratings",
     sosAlerts: process.env.DYNAMODB_TABLE_SOS_ALERTS || "PlusOne_SOSAlerts",
     sessions: process.env.DYNAMODB_TABLE_SESSIONS || "PlusOne_Sessions",
+    subscriptions: process.env.DYNAMODB_TABLE_SUBSCRIPTIONS || "PlusOne_Subscriptions",
   },
   jwtSecret: process.env.JWT_SECRET || "plusone_default_secret",
   razorpay: {
