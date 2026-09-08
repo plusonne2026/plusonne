@@ -63,8 +63,24 @@ const getFirebaseAuth = () => {
   return getAuth(firebaseApp);
 };
 
+/**
+ * Firebase Realtime Database instance return karta hai.
+ * Agar Firebase available nahi hai to null return karta hai.
+ */
+const getFirebaseDatabase = () => {
+  if (!isFirebaseAvailable || !firebaseApp) return null;
+  try {
+    const { getDatabase } = require('firebase-admin/database');
+    return getDatabase(firebaseApp);
+  } catch (err) {
+    console.warn('[Firebase] RTDB not available:', err.message);
+    return null;
+  }
+};
+
 module.exports = {
   firebaseApp,
   getFirebaseAuth,
+  getFirebaseDatabase,
   isFirebaseAvailable,
 };

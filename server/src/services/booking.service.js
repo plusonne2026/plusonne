@@ -9,6 +9,7 @@ const HOSTS_TABLE = config.tables.hosts;
 
 const UnitService = require("./unit.service");
 const FCMClient = require("../clients/fcm.client");
+const SessionService = require("./session.service");
 
 class BookingService {
   static async createBooking(userId, payload) {
@@ -200,6 +201,14 @@ class BookingService {
       expressionAttributeValues
     );
 
+    if (dbStatus === "host_confirmed") {
+      try {
+        await SessionService.createSession(bookingId);
+      } catch (sessionErr) {
+        console.warn(`[BookingService] Could not auto-initialize session for ${bookingId}:`, sessionErr.message);
+      }
+    }
+
     // Notify User
     if (updated && updated.userId) {
       try {
@@ -284,6 +293,13 @@ class BookingService {
         { "#status": "status" },
         { ":status": "host_confirmed", ":hostId": hostId, ":now": now }
       );
+
+      // Initialize session record in PlusOne_Sessions (status: awaiting_host)
+      try {
+        await SessionService.createSession(bookingId);
+      } catch (sessionErr) {
+        console.warn(`[BookingService] Could not auto-initialize session for ${bookingId}:`, sessionErr.message);
+      }
 
       // Notify user
       try {

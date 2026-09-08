@@ -357,6 +357,41 @@ async function createSosAlertsTable() {
   }
 }
 
+async function createSessionsTable() {
+  const tableName = config.tables.sessions || "PlusOne_Sessions";
+  try {
+    const existing = await dynamoDbClient.send(new ListTablesCommand({}));
+    if (existing.TableNames?.includes(tableName)) {
+      console.log(`✅ Table "${tableName}" already exists.`);
+      return;
+    }
+    const params = {
+      TableName: tableName,
+      KeySchema: [{ AttributeName: "bookingId", KeyType: "HASH" }],
+      AttributeDefinitions: [
+        { AttributeName: "bookingId", AttributeType: "S" },
+        { AttributeName: "status", AttributeType: "S" },
+        { AttributeName: "startTime", AttributeType: "S" },
+      ],
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: "ActiveSessionsIndex",
+          KeySchema: [
+            { AttributeName: "status", KeyType: "HASH" },
+            { AttributeName: "startTime", KeyType: "RANGE" },
+          ],
+          Projection: { ProjectionType: "ALL" },
+        },
+      ],
+      BillingMode: "PAY_PER_REQUEST",
+    };
+    await dynamoDbClient.send(new CreateTableCommand(params));
+    console.log(`🎉 Successfully created table "${tableName}"!`);
+  } catch (err) {
+    console.error(`❌ Failed to create table ${tableName}:`, err);
+  }
+}
+
 async function main() {
   await createUsersTable();
   await createHostsTable();
@@ -369,6 +404,7 @@ async function main() {
   await createPaymentsTable();
   await createRatingsTable();
   await createSosAlertsTable();
+  await createSessionsTable();
 }
 
 main();

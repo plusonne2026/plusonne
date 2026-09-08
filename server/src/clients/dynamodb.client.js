@@ -49,14 +49,19 @@ class DynamoDBHelper {
   }
 
   static async updateItem(TableName, Key, UpdateExpression, ExpressionAttributeNames, ExpressionAttributeValues) {
-    const command = new UpdateCommand({
+    const params = {
       TableName,
       Key,
       UpdateExpression,
-      ExpressionAttributeNames,
-      ExpressionAttributeValues,
       ReturnValues: "ALL_NEW",
-    });
+    };
+    if (ExpressionAttributeNames && Object.keys(ExpressionAttributeNames).length > 0) {
+      params.ExpressionAttributeNames = ExpressionAttributeNames;
+    }
+    if (ExpressionAttributeValues && Object.keys(ExpressionAttributeValues).length > 0) {
+      params.ExpressionAttributeValues = ExpressionAttributeValues;
+    }
+    const command = new UpdateCommand(params);
     const result = await docClient.send(command);
     return result.Attributes;
   }
