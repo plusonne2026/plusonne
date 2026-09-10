@@ -1,73 +1,122 @@
-const DynamoDBHelper = require("../clients/dynamodb.client");
-const { v4: uuidv4 } = require("uuid");
-const config = require("../config/env");
+const RatingService = require("../services/rating.service");
 
-const RatingController = {
+class RatingController {
   /**
-   * Submit a rating and review for a booking
    * POST /api/v1/ratings
+   * Submit rating for a completed booking
+   * Auth: user/host
    */
-  submitRating: async (req, res) => {
+  static async submitRating(req, res, next) {
     try {
-      const { bookingId, targetUserId, rating, review, tags } = req.body;
-      const reviewerId = req.user.uid;
+      const raterId = req.user.userId || req.user.uid;
+      const { bookingId, scores, rating, comment, review, videoReviewUrl } = req.body;
 
-      if (!bookingId || !targetUserId || !rating) {
-        return res.status(400).json({ success: false, error: "Missing required fields" });
+      if (!bookingId) {
+        return res.status(400).json({
+          success: false,
+          message: "bookingId is required",
+        });
       }
 
-      // Check if booking exists
-      const booking = await DynamoDBHelper.getItem(config.tables.bookings, { bookingId });
-      if (!booking) {
-        return res.status(404).json({ success: false, error: "Booking not found" });
+      // Support documented format: { scores, comment, videoReviewUrl }
+      // Fallback: If caller passed legacy single 'rating' / 'review'
+      let finalScores = scores;
+      if (!finalScores && rating) {
+        finalScores = {
+          professionalism: Number(rating),
+          friendliness: Number(rating),
+          communication: Number(rating),
+          punctuality: Number(rating),
+        };
       }
 
-      // Create rating record
-      const ratingId = `rating_${uuidv4()}`;
-      const ratingData = {
-        ratingId,
+      const ratingRecord = await RatingService.submitRating(raterId, {
         bookingId,
-        reviewerId,
-        targetUserId,
-        rating: Number(rating),
-        review: review || "",
-        tags: tags || [],
-        createdAt: new Date().toISOString()
-      };
+        scores: finalScores,
+        comment: comment || review || "",
+        videoReviewUrl,
+      });
 
-      await DynamoDBHelper.putItem(config.tables.ratings, ratingData);
-
-      // Update booking status to indicate it has been rated
-      await DynamoDBHelper.updateItem(
-        config.tables.bookings, 
-        { bookingId }, 
-        "SET #isRated = :isRated",
-        { "#isRated": "isRated" },
-        { ":isRated": true }
-      );
-
-      // Update target user's trust score/average rating (simplified for MVP)
-      const targetUser = await DynamoDBHelper.getItem(config.tables.users, { userId: targetUserId });
-      if (targetUser) {
-        const currentScore = targetUser.trustScore || 80; // default 80
-        // simple rolling average mock
-        const newScore = Math.min(100, Math.max(0, currentScore + (Number(rating) - 3) * 2));
-        
-        await DynamoDBHelper.updateItem(
-          config.tables.users, 
-          { userId: targetUserId }, 
-          "SET #trustScore = :trustScore",
-          { "#trustScore": "trustScore" },
-          { ":trustScore": newScore }
-        );
-      }
-
-      res.status(201).json({ success: true, data: ratingData });
-    } catch (error) {
-      console.error("PlusOnne API Error:", error);
-      res.status(500).json({ success: false, error: error.message });
+      return res.status(201).json({
+        success: true,
+        message: "Rating submitted successfully",
+        data: ratingRecord,
+      });
+    } catch (err) {
+      next(err);
     }
   }
-};
+
+  /**
+   * GET /api/v1/ratings/for/:userId
+   * Get ratings received by a user or host
+   * Auth: any authenticated user
+   */
+  static async getRatingsForUser(req, res, next) {
+    try {
+      const { userId } = req.params;
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: "userId is required",
+        });
+      }
+
+      const ratings = await RatingService.getRatingsForUser(userId);
+      return res.status(200).json({
+        success: true,
+        count: ratings.length,
+        data: ratings,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/v1/ratings/booking/:bookingId
+   * Get ratings for a booking
+   * Auth: any authenticated user
+   */
+  static async getRatingsForBooking(req, res, next) {
+    try {
+      const { bookingId } = req.params;
+      if (!bookingId) {
+        return res.status(400).json({
+          success: false,
+          message: "bookingId is required",
+        });
+      }
+
+      const ratings = await RatingService.getRatingsForBooking(bookingId);
+      return res.status(200).json({
+        success: true,
+        count: ratings.length,
+        data: ratings,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/v1/ratings/my-given
+   * Get ratings I've given
+   * Auth: any authenticated user
+   */
+  static async getMyGivenRatings(req, res, next) {
+    try {
+      const raterId = req.user.userId || req.user.uid;
+      const ratings = await RatingService.getMyGivenRatings(raterId);
+      return res.status(200).json({
+        success: true,
+        count: ratings.length,
+        data: ratings,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+}
 
 module.exports = RatingController;

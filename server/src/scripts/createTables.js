@@ -291,11 +291,18 @@ async function createPaymentsTable() {
 
 async function createRatingsTable() {
   const tableName = config.tables.ratings;
+  const forceRecreate = process.argv.includes("--recreate") || process.argv.includes("--force");
   try {
     const existing = await dynamoDbClient.send(new ListTablesCommand({}));
     if (existing.TableNames?.includes(tableName)) {
-      console.log(`✅ Table "${tableName}" already exists.`);
-      return;
+      if (forceRecreate) {
+        console.log(`🗑️ Deleting existing table "${tableName}" for recreation...`);
+        await dynamoDbClient.send(new DeleteTableCommand({ TableName: tableName }));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else {
+        console.log(`✅ Table "${tableName}" already exists.`);
+        return;
+      }
     }
     const params = {
       TableName: tableName,
@@ -303,24 +310,41 @@ async function createRatingsTable() {
       AttributeDefinitions: [
         { AttributeName: "ratingId", AttributeType: "S" },
         { AttributeName: "bookingId", AttributeType: "S" },
-        { AttributeName: "targetUserId", AttributeType: "S" },
+        { AttributeName: "rateeId", AttributeType: "S" },
+        { AttributeName: "raterId", AttributeType: "S" },
+        { AttributeName: "createdAt", AttributeType: "S" },
+        { AttributeName: "raterRole", AttributeType: "S" },
       ],
       GlobalSecondaryIndexes: [
         {
-          IndexName: "BookingIndex",
-          KeySchema: [{ AttributeName: "bookingId", KeyType: "HASH" }],
+          IndexName: "RateeIndex",
+          KeySchema: [
+            { AttributeName: "rateeId", KeyType: "HASH" },
+            { AttributeName: "createdAt", KeyType: "RANGE" },
+          ],
           Projection: { ProjectionType: "ALL" },
         },
         {
-          IndexName: "TargetUserIndex",
-          KeySchema: [{ AttributeName: "targetUserId", KeyType: "HASH" }],
+          IndexName: "BookingRatingIndex",
+          KeySchema: [
+            { AttributeName: "bookingId", KeyType: "HASH" },
+            { AttributeName: "raterRole", KeyType: "RANGE" },
+          ],
           Projection: { ProjectionType: "ALL" },
-        }
+        },
+        {
+          IndexName: "RaterIndex",
+          KeySchema: [
+            { AttributeName: "raterId", KeyType: "HASH" },
+            { AttributeName: "createdAt", KeyType: "RANGE" },
+          ],
+          Projection: { ProjectionType: "ALL" },
+        },
       ],
       BillingMode: "PAY_PER_REQUEST",
     };
     await dynamoDbClient.send(new CreateTableCommand(params));
-    console.log(`🎉 Successfully created table "${tableName}"!`);
+    console.log(`🎉 Successfully created table "${tableName}" with Table 12 GSIs!`);
   } catch (err) {
     console.error(`❌ Failed to create table ${tableName}:`, err);
   }

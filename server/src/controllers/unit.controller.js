@@ -20,29 +20,48 @@ class UnitController {
 
   /**
    * POST /api/v1/units/purchase
-   * Simulates purchasing units for the authenticated user
+   * Purchase time or distance units matching Section 6.10 documentation
+   * Supports:
+   *   { type: "hours"|"km", amount: 10, pricePerUnit?: 150 }
+   *   Legacy fallback: { hoursAmount, kmAmount }
    */
   static async purchaseUnits(req, res, next) {
     try {
       const userId = req.user.userId;
-      const { hoursAmount, kmAmount, amountPaid } = req.body;
-      
-      if (!hoursAmount && !kmAmount) {
-        return res.status(400).json({
-          success: false,
-          message: "Must provide hoursAmount or kmAmount to purchase",
+      const { type, amount, pricePerUnit, autoCredit, hoursAmount, kmAmount } = req.body;
+
+      // Handle documented format: { type, amount }
+      if (type && amount !== undefined) {
+        const result = await UnitService.purchaseUnits(userId, {
+          type,
+          amount,
+          pricePerUnit,
+          autoCredit: autoCredit !== undefined ? Boolean(autoCredit) : true,
+        });
+
+        return res.status(200).json({
+          success: true,
+          message: "Unit purchase initiated successfully",
+          data: {
+            razorpayOrderId: result.razorpayOrderId,
+            purchase: result.purchase,
+          },
         });
       }
 
-      // In a real scenario, we'd verify the payment status via Razorpay/Stripe here.
-      // For now, we simulate a successful payment and credit directly.
+      // Legacy fallback: { hoursAmount, kmAmount }
+      if (hoursAmount || kmAmount) {
+        const updated = await UnitService.adjustUserBalance(userId, hoursAmount || 0, kmAmount || 0);
+        return res.status(200).json({
+          success: true,
+          message: "Successfully purchased units",
+          data: updated,
+        });
+      }
 
-      const updated = await UnitService.adjustUserBalance(userId, hoursAmount || 0, kmAmount || 0);
-      
-      return res.status(200).json({
-        success: true,
-        message: `Successfully purchased units`,
-        data: updated,
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid request payload. Must provide { type: "hours"|"km", amount: number }',
       });
     } catch (err) {
       next(err);
@@ -51,7 +70,7 @@ class UnitController {
 
   /**
    * GET /api/v1/units/balance
-   * Get the current authenticated user's wallet balance
+   * Get current authenticated user's wallet balance matching Table 8
    */
   static async getMyBalance(req, res, next) {
     try {
@@ -60,6 +79,24 @@ class UnitController {
       return res.status(200).json({
         success: true,
         data: balance,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/v1/units/history
+   * Get unit-specific purchase and usage history
+   */
+  static async getUnitHistory(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const history = await UnitService.getUnitHistory(userId);
+      return res.status(200).json({
+        success: true,
+        count: history.length,
+        data: history,
       });
     } catch (err) {
       next(err);

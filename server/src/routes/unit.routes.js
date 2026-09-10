@@ -1,28 +1,28 @@
 const express = require("express");
-const UnitController = require("../controllers/unit.controller");
-const { authenticate } = require("../middleware/auth.middleware");
-
 const router = express.Router();
+const UnitController = require("../controllers/unit.controller");
+const authMiddleware = require("../middleware/auth.middleware");
+const { requireRole } = require("../middleware/role.middleware");
+const { ROLES } = require("../config/constants");
 
 /**
- * @route   GET /api/v1/units/prices
- * @desc    Get current global unit prices
- * @access  Public
+ * Public Routes
  */
+// GET /api/v1/units/prices — Get current global unit prices
 router.get("/prices", UnitController.getUnitPrices);
 
 /**
- * @route   GET /api/v1/units/balance
- * @desc    Get current user's unit balance
- * @access  Private (Authenticated User)
+ * Protected Routes (User Role)
  */
-router.get("/balance", authenticate, UnitController.getMyBalance);
+router.use(authMiddleware.authenticate);
 
-/**
- * @route   POST /api/v1/units/purchase
- * @desc    Simulate purchasing units (credit wallet)
- * @access  Private (Authenticated User)
- */
-router.post("/purchase", authenticate, UnitController.purchaseUnits);
+// 1. POST /api/v1/units/purchase — Purchase time or distance units
+router.post("/purchase", requireRole(ROLES.USER), UnitController.purchaseUnits);
+
+// 2. GET /api/v1/units/balance — Get current balances
+router.get("/balance", requireRole(ROLES.USER), UnitController.getMyBalance);
+
+// 3. GET /api/v1/units/history — Get purchase/usage history
+router.get("/history", requireRole(ROLES.USER), UnitController.getUnitHistory);
 
 module.exports = router;
